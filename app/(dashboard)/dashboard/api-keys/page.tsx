@@ -3,20 +3,26 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogDescription, 
-  DialogHeader, 
-  DialogTitle, 
-  DialogTrigger 
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { 
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -80,7 +86,7 @@ export default function ApiKeysPage() {
 
   const handleCreateKey = async () => {
     if (!newKeyName.trim()) return;
-    
+
     setCreating(true);
     try {
       const response = await fetch("/api/keys", {
@@ -115,7 +121,7 @@ export default function ApiKeysPage() {
       });
 
       if (response.ok) {
-        setApiKeys(apiKeys.filter(key => key.id !== keyId));
+        setApiKeys(apiKeys.filter((key) => key.id !== keyId));
       }
     } catch (error) {
       console.error("Error deleting API key:", error);
@@ -186,10 +192,16 @@ export default function ApiKeysPage() {
                 />
               </div>
               <div className="flex items-center justify-end gap-2">
-                <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>
+                <Button
+                  variant="outline"
+                  onClick={() => setCreateDialogOpen(false)}
+                >
                   Cancel
                 </Button>
-                <Button onClick={handleCreateKey} disabled={creating || !newKeyName.trim()}>
+                <Button
+                  onClick={handleCreateKey}
+                  disabled={creating || !newKeyName.trim()}
+                >
                   {creating ? "Creating..." : "Create Key"}
                 </Button>
               </div>
@@ -222,9 +234,9 @@ export default function ApiKeysPage() {
                 <Copy className="w-4 h-4" />
               </Button>
             </div>
-            <Button 
-              className="mt-4" 
-              variant="outline" 
+            <Button
+              className="mt-4"
+              variant="outline"
               onClick={() => setNewKeyData(null)}
             >
               I've saved this key
@@ -240,7 +252,8 @@ export default function ApiKeysPage() {
             <Key className="w-16 h-16 text-muted-foreground mb-4" />
             <h3 className="text-lg font-semibold mb-2">No API Keys</h3>
             <p className="text-muted-foreground mb-6 text-center max-w-md">
-              Create your first API key to start integrating with your agent wallets programmatically
+              Create your first API key to start integrating with your agent
+              wallets programmatically
             </p>
           </CardContent>
         </Card>
@@ -253,7 +266,9 @@ export default function ApiKeysPage() {
                   <div className="space-y-2">
                     <div className="flex items-center gap-2">
                       <h3 className="font-semibold">{apiKey.name}</h3>
-                      <Badge variant={apiKey.isActive ? "default" : "secondary"}>
+                      <Badge
+                        variant={apiKey.isActive ? "default" : "secondary"}
+                      >
                         {apiKey.isActive ? "Active" : "Inactive"}
                       </Badge>
                     </div>
@@ -268,13 +283,17 @@ export default function ApiKeysPage() {
                     </div>
                     <div className="flex items-center gap-1">
                       {apiKey.permissions.map((permission) => (
-                        <Badge key={permission} variant="outline" className="text-xs">
+                        <Badge
+                          key={permission}
+                          variant="outline"
+                          className="text-xs"
+                        >
                           {permission}
                         </Badge>
                       ))}
                     </div>
                   </div>
-                  
+
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
                       <Button variant="ghost" size="sm">
@@ -285,12 +304,15 @@ export default function ApiKeysPage() {
                       <AlertDialogHeader>
                         <AlertDialogTitle>Delete API Key</AlertDialogTitle>
                         <AlertDialogDescription>
-                          Are you sure you want to delete this API key? This action cannot be undone.
+                          Are you sure you want to delete this API key? This
+                          action cannot be undone.
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>
                         <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction onClick={() => handleDeleteKey(apiKey.id)}>
+                        <AlertDialogAction
+                          onClick={() => handleDeleteKey(apiKey.id)}
+                        >
                           Delete
                         </AlertDialogAction>
                       </AlertDialogFooter>
@@ -302,32 +324,6 @@ export default function ApiKeysPage() {
           ))}
         </div>
       )}
-
-      {/* API Documentation */}
-      <Card>
-        <CardHeader>
-          <CardTitle>API Usage</CardTitle>
-          <CardDescription>
-            Use your API keys to access your wallets programmatically
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div>
-            <h4 className="font-semibold mb-2">Authentication</h4>
-            <div className="bg-muted p-3 rounded font-mono text-sm">
-              curl -H "Authorization: Bearer your_api_key_here" https://yourapp.com/api/v1/wallets
-            </div>
-          </div>
-          <div>
-            <h4 className="font-semibold mb-2">Available Endpoints</h4>
-            <ul className="space-y-1 text-sm">
-              <li><code>GET /api/v1/wallets</code> - List your wallets</li>
-              <li><code>GET /api/v1/transactions</code> - List transactions</li>
-              <li><code>POST /api/v1/transactions</code> - Send tokens</li>
-            </ul>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 }
