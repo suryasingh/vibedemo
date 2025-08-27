@@ -1,0 +1,172 @@
+"use client";
+
+import {
+  IconCamera,
+  IconCopy,
+  IconDashboard,
+  IconDatabase,
+  IconFileAi,
+  IconFileDescription,
+  IconFileWord,
+  IconHome,
+  IconInnerShadowTop,
+  IconReport,
+  IconSettings,
+  IconUserCircle,
+  IconWallet,
+  IconRobot,
+  IconShield,
+  IconNetwork,
+  IconCoin,
+  IconTransfer,
+  IconKey,
+  IconShoppingCart,
+} from "@tabler/icons-react";
+import * as React from "react";
+
+import { NavMain } from "@/components/nav-main";
+import { NavSecondary } from "@/components/nav-secondary";
+import { NavUser } from "@/components/nav-user";
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+} from "@/components/ui/sidebar";
+import { user } from "@prisma/client";
+
+const data = {
+  navMain: [
+    {
+      title: "Dashboard",
+      url: "/dashboard",
+      icon: IconDashboard,
+    },
+    {
+      title: "Agent Wallets",
+      url: "/dashboard/wallet",
+      icon: IconWallet,
+    },
+    {
+      title: "Service Marketplace",
+      url: "/dashboard/services",
+      icon: IconShoppingCart,
+    },
+    {
+      title: "Transactions",
+      url: "/dashboard/transactions",
+      icon: IconTransfer,
+    },
+    {
+      title: "API Keys",
+      url: "/dashboard/api-keys",
+      icon: IconKey,
+    },
+    {
+      title: "Settings",
+      url: "/dashboard/setting",
+      icon: IconSettings,
+    },
+  ],
+  navClouds: [
+    {
+      title: "Earn Money",
+      icon: IconCoin,
+      isActive: true,
+      url: "#",
+      items: [
+        {
+          title: "Provide Services",
+          url: "#",
+        },
+        {
+          title: "Set Pricing",
+          url: "#",
+        },
+      ],
+    },
+    {
+      title: "Spend Money",
+      icon: IconTransfer,
+      url: "#",
+      items: [
+        {
+          title: "Browse Services",
+          url: "#",
+        },
+        {
+          title: "Request Services",
+          url: "#",
+        },
+      ],
+    },
+    {
+      title: "Agent Network",
+      icon: IconNetwork,
+      url: "#",
+      items: [
+        {
+          title: "Connected Agents",
+          url: "#",
+        },
+        {
+          title: "Discovery",
+          url: "#",
+        },
+      ],
+    },
+  ],
+  navSecondary: [
+    // {
+    //   title: "Home",
+    //   url: "/",
+    //   icon: IconHome,
+    // },
+    // {
+    //   title: "Clone Repository",
+    //   url: "https://github.com/Achour/nextjs-better-auth",
+    //   icon: IconCopy,
+    // },
+  ],
+  documents: [],
+};
+
+interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
+  user: user;
+}
+
+export function AppSidebar({ user, ...props }: AppSidebarProps) {
+  if (!user) {
+    throw new Error("AppSidebar requires a user but received undefined.");
+  }
+  return (
+    <Sidebar collapsible="offcanvas" {...props}>
+      <SidebarHeader>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              asChild
+              className="data-[slot=sidebar-menu-button]:!p-1.5"
+            >
+              <a href="#">
+                <IconInnerShadowTop className="!size-5" />
+                <span className="text-base font-semibold">VibePay</span>
+              </a>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarHeader>
+      <SidebarContent>
+        <NavMain items={data.navMain} />
+        {/* <NavDocuments items={data.documents} /> */}
+        <NavSecondary items={data.navSecondary} className="mt-auto" />
+      </SidebarContent>
+      <SidebarFooter>
+        <NavUser user={user} />
+      </SidebarFooter>
+    </Sidebar>
+  );
+}

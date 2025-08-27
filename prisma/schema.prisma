@@ -1,0 +1,193 @@
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model account {
+  id                    String    @id
+  accountId             String
+  providerId            String
+  userId                String
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime
+  updatedAt             DateTime
+  user                  user      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model session {
+  id        String   @id
+  expiresAt DateTime
+  token     String   @unique
+  createdAt DateTime
+  updatedAt DateTime
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      user     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model user {
+  id            String    @id
+  name          String
+  email         String    @unique
+  emailVerified Boolean
+  image         String?
+  createdAt     DateTime
+  updatedAt     DateTime
+  account       account[]
+  session       session[]
+  wallets       wallet[]
+  apiKeys       apiKey[]
+}
+
+model wallet {
+  id                   String        @id @default(cuid())
+  userId               String
+  agentName            String
+  agentType            String        @default("AI_AGENT")
+  cardNumber           String        @unique
+  cardHolderName       String
+  expiryDate           String
+  balance              Decimal       @default(0.00)
+  currency             String        @default("USD")
+  isActive             Boolean       @default(true)
+  ethereumAddress      String?       @unique
+  ethereumPrivateKey   String?
+  createdAt            DateTime      @default(now())
+  updatedAt            DateTime      @updatedAt
+  user                 user          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sentTransactions     transaction[] @relation("SenderWallet")
+  receivedTransactions transaction[] @relation("ReceiverWallet")
+  services             service[]
+}
+
+model transaction {
+  id                String   @id @default(cuid())
+  fromWalletId      String
+  toWalletId        String
+  amount            Decimal
+  currency          String   @default("VPT")
+  memo              String?
+  status            String   @default("PENDING") // PENDING, COMPLETED, FAILED
+  type              String   @default("TRANSFER") // TRANSFER, PAYMENT, REFUND
+  blockchainHash    String?  // Ethereum transaction hash
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  fromWallet        wallet   @relation("SenderWallet", fields: [fromWalletId], references: [id])
+  toWallet          wallet   @relation("ReceiverWallet", fields: [toWalletId], references: [id])
+}
+
+model service {
+  id              String   @id @default(cuid())
+  walletId        String
+  name            String
+  description     String
+  pricePerRequest Decimal  @default(0.25)
+  category        String
+  isActive        Boolean  @default(true)
+  apiEndpoint     String?
+  authMethod      String   @default("api-key")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  wallet          wallet   @relation(fields: [walletId], references: [id], onDelete: Cascade)
+}
+
+model verification {
+  id         String    @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime?
+  updatedAt  DateTime?
+}
+
+model apiKey {
+  id          String    @id @default(cuid())
+  userId      String
+  name        String
+  keyHash     String    @unique
+  keyPreview  String // First 8 chars for display
+  permissions String[]  @default(["read", "transact"])
+  isActive    Boolean   @default(true)
+  lastUsedAt  DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  user        user      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+
+
+model OauthApplication {
+  id           String    @id
+  name         String?
+  icon         String?
+  metadata     String?
+  clientId     String?
+  clientSecret String?
+  redirectURLs String?
+  type         String?
+  disabled     Boolean?
+  userId       String?
+  createdAt    DateTime?
+  updatedAt    DateTime?
+
+  @@unique([clientId])
+  @@map("oauthApplication")
+}
+
+model OauthAccessToken {
+  id                    String    @id
+  accessToken           String?
+  refreshToken          String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  clientId              String?
+  userId                String?
+  scopes                String?
+  createdAt             DateTime?
+  updatedAt             DateTime?
+
+  @@unique([accessToken])
+  @@unique([refreshToken])
+  @@map("oauthAccessToken")
+}
+
+model OauthConsent {
+  id           String    @id
+  clientId     String?
+  userId       String?
+  scopes       String?
+  createdAt    DateTime?
+  updatedAt    DateTime?
+  consentGiven Boolean?
+
+  @@map("oauthConsent")
+}
+
+model OauthCode {
+  id                String    @id
+  code              String?
+  clientId          String?
+  userId            String?
+  scopes            String?
+  redirectUri       String?
+  codeChallenge     String?
+  codeChallengeMethod String?
+  expiresAt         DateTime?
+  createdAt         DateTime?
+  updatedAt         DateTime?
+
+  @@unique([code])
+  @@map("oauthCode")
+}
