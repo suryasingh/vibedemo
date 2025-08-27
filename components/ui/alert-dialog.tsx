@@ -51,7 +51,7 @@ const AlertDialog = ({ children, open, onOpenChange }: AlertDialogProps) => {
 
 const AlertDialogTrigger = ({ children, asChild, onClick }: AlertDialogTriggerProps) => {
   if (asChild && React.isValidElement(children)) {
-    return React.cloneElement(children, {
+    return React.cloneElement<any>(children, {
       onClick: () => {
         onClick?.()
         // Dialog trigger will handle opening
