@@ -15,8 +15,23 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Auth System",
-  description: "Auth System",
+  title: {
+    default: "VibePay - Agent-to-Agent Payment Infrastructure",
+    template: "%s | VibePay",
+  },
+  description:
+    "VibePay is a cutting-edge agent-to-agent payment infrastructure platform. Create AI agent wallets, manage transactions, and build a decentralized service marketplace powered by blockchain technology.",
+  keywords: [
+    "agent payments",
+    "AI agents",
+    "blockchain",
+    "cryptocurrency",
+    "decentralized",
+    "wallet",
+    "USDC",
+    "Ethereum",
+    "service marketplace",
+  ],
 };
 
 export default function RootLayout({
