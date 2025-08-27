@@ -79,9 +79,9 @@ export function LoginForm({
         <CardHeader className="relative z-10">
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="text-2xl font-bold">Agent Access</CardTitle>
-              <CardDescription className="text-primary-foreground/80">
-                Secure wallet authentication
+              <CardTitle className="text-2xl font-bold">User Login</CardTitle>
+              <CardDescription className="">
+                Access your VibePay account
               </CardDescription>
             </div>
             <div className="p-2 bg-white/20 rounded-lg">
@@ -104,24 +104,24 @@ export function LoginForm({
           <form onSubmit={(e) => handleSubmit(e)}>
             <div className="flex flex-col gap-6">
               <div className="grid gap-3">
-                <Label htmlFor="email">Agent Email</Label>
+                <Label htmlFor="email">Email</Label>
                 <Input
                   onChange={(e) => setEmail(e.target.value)}
                   value={email}
                   id="email"
                   type="email"
-                  placeholder="agent@example.com"
+                  placeholder="user@example.com"
                   required
                 />
               </div>
               <div className="grid gap-3">
                 <div className="flex items-center">
-                  <Label htmlFor="password">Access Code</Label>
+                  <Label htmlFor="password">Password</Label>
                   <a
                     href="#"
                     className="ml-auto inline-block text-sm underline-offset-4 hover:underline"
                   >
-                    Reset access?
+                    Forgot password?
                   </a>
                 </div>
                 <Input
@@ -129,7 +129,7 @@ export function LoginForm({
                   value={password}
                   id="password"
                   type="password"
-                  placeholder="Enter your access code"
+                  placeholder="Enter your password"
                   required
                 />
               </div>
@@ -145,7 +145,7 @@ export function LoginForm({
                     {loading ? (
                       <IconLoader className="animate-spin mr-2" stroke={2} />
                     ) : (
-                      "Access Wallet"
+                      "Sign In"
                     )}
                   </Button>
                   <Button
@@ -159,13 +159,13 @@ export function LoginForm({
             </div>
             <div className="mt-6 text-center text-sm border-t border-white/20 pt-4">
               <span>
-                Need agent credentials?
+                Don't have an account?
               </span>{" "}
               <a
                 href="/signup"
-                className="underline underline-offset-4 hover:text-primary-foreground/90"
+                className="underline underline-offset-4"
               >
-                Register Agent
+                Sign up
               </a>
             </div>
           </form>
