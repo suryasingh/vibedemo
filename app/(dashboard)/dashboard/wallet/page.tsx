@@ -1,10 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { WalletCard } from "@/components/wallet-card";
-import { CreateWalletForm } from "@/components/wallet/create-wallet-form";
-import { Plus, Wallet, Settings, Network, Code, Zap } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -14,17 +10,12 @@ import {
 } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { WalletCard } from "@/components/wallet-card";
+import { CreateWalletForm } from "@/components/wallet/create-wallet-form";
 import { authClient } from "@/lib/auth-client";
+import { Plus, Wallet } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
 interface Wallet {
   id: string;
@@ -187,6 +178,11 @@ export default function WalletPage() {
     }
   };
 
+  const handleDeposit = () => {
+    // Refresh wallets to update balances after deposit
+    fetchWallets();
+  };
+
   const getCardVariant = (index: number) => {
     const variants = ["primary", "secondary", "accent"] as const;
     return variants[index % variants.length];
@@ -214,7 +210,7 @@ export default function WalletPage() {
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2">
+          <h1 className="text-xl font-bold flex items-center gap-2">
             <Wallet className="w-7 h-7" />
             Agent Wallets & Services
           </h1>
@@ -243,7 +239,6 @@ export default function WalletPage() {
         </Dialog>
       </div>
 
-      <Separator />
       {wallets.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-12 text-center">
           <Wallet className="w-16 h-16 text-muted-foreground mb-4" />
@@ -289,6 +284,7 @@ export default function WalletPage() {
                 handleCreateService(wallet.id, serviceData)
               }
               onSendTransaction={handleSendTransaction}
+              onDeposit={handleDeposit}
               variant={"secondary"}
             />
           ))}

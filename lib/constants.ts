@@ -26,13 +26,18 @@ export const TOKEN_ABI = [
   "function decimals() view returns (uint8)", 
   "function symbol() view returns (string)",
   "function transfer(address to, uint256 amount) returns (bool)",
-  "function name() view returns (string)"
+  "function name() view returns (string)",
+  // Minting functions (if contract supports)
+  "function mint(address to, uint256 amount) returns (bool)",
+  "function owner() view returns (address)"
 ] as const;
 
 // Default values
 export const DEFAULTS = {
   SERVICE_PRICE: 0.25,
   WALLET_BALANCE: 0,
+  DEPOSIT_AMOUNT: 100,
+  GAS_ETH_AMOUNT: 0.001,
 } as const;
 
 // Application metadata

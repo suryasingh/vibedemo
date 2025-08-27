@@ -144,16 +144,18 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
   }
   return (
     <Sidebar collapsible="offcanvas" {...props}>
-      <SidebarHeader>
+      <SidebarHeader className="p-4">
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton
               asChild
               className="data-[slot=sidebar-menu-button]:!p-1.5"
             >
-              <a href="#">
-                <IconInnerShadowTop className="!size-5" />
-                <span className="text-base font-semibold">VibePay</span>
+              <a href="/dashboard" className="flex items-center gap-2">
+                <div className="w-6 h-6 bg-white border border-white/20 flex items-center justify-center">
+                  <div className="w-2 h-2 bg-black"></div>
+                </div>
+                <span className="text-3xl! font-medium">VibePay</span>
               </a>
             </SidebarMenuButton>
           </SidebarMenuItem>

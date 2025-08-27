@@ -92,7 +92,7 @@ export default function Page() {
     status: transaction.status === "COMPLETED" ? "Completed" : 
              transaction.status === "PENDING" ? "Pending" : 
              transaction.status === "FAILED" ? "Failed" : transaction.status,
-    target: `${transaction.amount.toFixed(CURRENCY.DECIMALS)} ${CURRENCY.TICKER}`,
+    target: `${Number(transaction.amount).toFixed(CURRENCY.DECIMALS)} ${CURRENCY.TICKER}`,
     limit: transaction.memo || "-",
     reviewer: transaction.toWallet?.agentName || "External",
   }));

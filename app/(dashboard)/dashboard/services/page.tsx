@@ -106,29 +106,36 @@ export default function ServicesPage() {
 
   // Filter services based on search and filters
   const filteredServices = services.filter((service) => {
-    const matchesSearch = 
+    const matchesSearch =
       service.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       service.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
       service.wallet.agentName.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesCategory = selectedCategory === "all" || 
+
+    const matchesCategory =
+      selectedCategory === "all" ||
       service.category.toLowerCase() === selectedCategory.toLowerCase();
-    
-    const matchesPrice = !maxPrice || service.pricePerRequest <= parseFloat(maxPrice);
-    
+
+    const matchesPrice =
+      !maxPrice || service.pricePerRequest <= parseFloat(maxPrice);
+
     return matchesSearch && matchesCategory && matchesPrice;
   });
 
   // Get unique categories
-  const categories = Array.from(new Set(services.map(s => s.category)));
+  const categories = Array.from(new Set(services.map((s) => s.category)));
 
   // Statistics
   const stats = {
     total: services.length,
-    active: services.filter(s => s.isActive).length,
+    active: services.filter((s) => s.isActive).length,
     categories: categories.length,
-    avgPrice: services.length > 0 ? 
-      (services.reduce((sum, s) => sum + s.pricePerRequest, 0) / services.length).toFixed(2) : 0
+    avgPrice:
+      services.length > 0
+        ? (
+            services.reduce((sum, s) => sum + s.pricePerRequest, 0) /
+            services.length
+          ).toFixed(2)
+        : 0,
   };
 
   const handleUseService = (service: Service) => {
@@ -171,14 +178,13 @@ export default function ServicesPage() {
         </p>
       </div>
 
-      {/* Compact Stats in Header */}
-      <div className="flex items-center gap-6 text-sm text-muted-foreground">
+      {/* <div className="flex items-center gap-6 text-sm text-muted-foreground">
         <span>{services.length} services available</span>
         <span>•</span>
         <span>{services.filter(s => s.isActive).length} active</span>
         <span>•</span>
         <span>Avg: {stats.avgPrice} {CURRENCY.TICKER}</span>
-      </div>
+      </div> */}
 
       {/* Search and Filters */}
       <div className="flex flex-col sm:flex-row gap-4">
@@ -191,9 +197,9 @@ export default function ServicesPage() {
             className="pl-10"
           />
         </div>
-        
+
         <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-          <SelectTrigger className="w-full sm:w-48">
+          <SelectTrigger className="w-full sm:w-48 h-10">
             <SelectValue placeholder="All Categories" />
           </SelectTrigger>
           <SelectContent>
@@ -205,7 +211,7 @@ export default function ServicesPage() {
             ))}
           </SelectContent>
         </Select>
-        
+
         <Input
           type="number"
           placeholder={`Max price (${CURRENCY.TICKER})`}
@@ -215,7 +221,7 @@ export default function ServicesPage() {
           min="0"
           step="0.01"
         />
-        
+
         <Button
           variant="outline"
           onClick={() => {
@@ -236,10 +242,9 @@ export default function ServicesPage() {
           <Store className="w-16 h-16 text-muted-foreground mb-4" />
           <h3 className="text-lg font-semibold mb-2">No Services Found</h3>
           <p className="text-muted-foreground mb-6 max-w-md">
-            {searchTerm || selectedCategory !== "all" || maxPrice ? 
-              "No services match your current filters. Try adjusting your search criteria." :
-              "No services are currently available in the marketplace."
-            }
+            {searchTerm || selectedCategory !== "all" || maxPrice
+              ? "No services match your current filters. Try adjusting your search criteria."
+              : "No services are currently available in the marketplace."}
           </p>
           {(searchTerm || selectedCategory !== "all" || maxPrice) && (
             <Button
@@ -257,72 +262,86 @@ export default function ServicesPage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredServices.map((service) => (
-            <Card key={service.id} className="group hover:shadow-lg transition-shadow">
-              <CardHeader>
-                <div className="flex items-start justify-between">
-                  <div className="space-y-2">
-                    <CardTitle className="text-lg group-hover:text-primary transition-colors">
-                      {service.name}
-                    </CardTitle>
-                    <div className="flex items-center gap-2">
-                      <Badge variant={service.isActive ? "default" : "secondary"}>
-                        {service.isActive ? "Active" : "Inactive"}
-                      </Badge>
-                      <Badge variant="outline" className="text-xs">
-                        {service.category}
-                      </Badge>
+            <div
+              key={service.id}
+              className="*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card *:data-[slot=card]:bg-gradient-to-bl *:data-[slot=card]:shadow-xs"
+            >
+              <Card className="group hover:shadow-lg transition-shadow @container/card">
+                <CardHeader>
+                  <div className="flex items-start justify-between">
+                    <div className="space-y-2">
+                      <CardTitle className="text-lg group-hover:text-primary transition-colors">
+                        {service.name}
+                      </CardTitle>
+                      <div className="flex items-center gap-2">
+                        <Badge
+                          variant={service.isActive ? "default" : "secondary"}
+                        >
+                          {service.isActive ? "Active" : "Inactive"}
+                        </Badge>
+                        <Badge variant="outline" className="text-xs">
+                          {service.category}
+                        </Badge>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-lg font-bold text-primary">
+                        {service.pricePerRequest} {CURRENCY.TICKER}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        per request
+                      </p>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <p className="text-lg font-bold text-primary">
-                      {service.pricePerRequest} {CURRENCY.TICKER}
-                    </p>
-                    <p className="text-xs text-muted-foreground">per request</p>
+                </CardHeader>
+
+                <CardContent className="space-y-4">
+                  <CardDescription className="line-clamp-3">
+                    {service.description}
+                  </CardDescription>
+
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground">Provider:</span>
+                      <span className="font-medium">
+                        {service.wallet.agentName}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground">Agent Type:</span>
+                      <span className="font-medium">
+                        {service.wallet.agentType}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground">Payment ID:</span>
+                      <span className="font-mono text-xs">
+                        {service.wallet.cardNumber}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground">
+                        Auth Method:
+                      </span>
+                      <span className="font-medium capitalize">
+                        {service.authMethod.replace("-", " ")}
+                      </span>
+                    </div>
                   </div>
-                </div>
-              </CardHeader>
-              
-              <CardContent className="space-y-4">
-                <CardDescription className="line-clamp-3">
-                  {service.description}
-                </CardDescription>
-                
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">Provider:</span>
-                    <span className="font-medium">{service.wallet.agentName}</span>
+
+                  <div className="flex gap-2 mt-6">
+                    <Button
+                      onClick={() => handleUseService(service)}
+                      disabled={!service.isActive}
+                      className="flex-1"
+                    >
+                      <Zap className="w-4 h-4 mr-2" />
+                      Use Service
+                    </Button>
                   </div>
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">Agent Type:</span>
-                    <span className="font-medium">{service.wallet.agentType}</span>
-                  </div>
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">Payment ID:</span>
-                    <span className="font-mono text-xs">{service.wallet.cardNumber}</span>
-                  </div>
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">Auth Method:</span>
-                    <span className="font-medium capitalize">{service.authMethod.replace('-', ' ')}</span>
-                  </div>
-                </div>
-                
-                <Separator />
-                
-                <div className="flex gap-2">
-                  <Button 
-                    onClick={() => handleUseService(service)}
-                    disabled={!service.isActive}
-                    className="flex-1"
-                  >
-                    <Zap className="w-4 h-4 mr-2" />
-                    Use Service
-                  </Button>
-                  <Button variant="outline" size="sm">
-                    Details
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </div>
           ))}
         </div>
       )}
@@ -331,7 +350,8 @@ export default function ServicesPage() {
       {filteredServices.length > 0 && (
         <div className="text-center text-sm text-muted-foreground py-4">
           Showing {filteredServices.length} of {services.length} services
-          {(searchTerm || selectedCategory !== "all" || maxPrice) && " matching your filters"}
+          {(searchTerm || selectedCategory !== "all" || maxPrice) &&
+            " matching your filters"}
         </div>
       )}
 

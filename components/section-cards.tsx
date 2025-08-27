@@ -61,12 +61,12 @@ export function SectionCards({ transactions, wallets }: SectionCardsProps) {
   // Calculate income (payments received TO user's wallets)
   const income = transactions
     .filter(t => userWalletIds.has(t.toWalletId) && t.status === "COMPLETED")
-    .reduce((sum, t) => sum + t.amount, 0);
+    .reduce((sum, t) => sum + Number(t.amount), 0);
 
   // Calculate expenses (payments sent FROM user's wallets)  
   const expenses = transactions
     .filter(t => userWalletIds.has(t.fromWalletId) && t.status === "COMPLETED")
-    .reduce((sum, t) => sum + t.amount, 0);
+    .reduce((sum, t) => sum + Number(t.amount), 0);
 
   // Calculate net profit
   const netProfit = income - expenses;
@@ -74,11 +74,11 @@ export function SectionCards({ transactions, wallets }: SectionCardsProps) {
   // Calculate this month's stats
   const monthlyIncome = currentMonthTransactions
     .filter(t => userWalletIds.has(t.toWalletId) && t.status === "COMPLETED")
-    .reduce((sum, t) => sum + t.amount, 0);
+    .reduce((sum, t) => sum + Number(t.amount), 0);
 
   const monthlyExpenses = currentMonthTransactions
     .filter(t => userWalletIds.has(t.fromWalletId) && t.status === "COMPLETED")
-    .reduce((sum, t) => sum + t.amount, 0);
+    .reduce((sum, t) => sum + Number(t.amount), 0);
 
   // Count transactions
   const incomeTransactionCount = transactions.filter(t => userWalletIds.has(t.toWalletId) && t.status === "COMPLETED").length;
@@ -95,7 +95,7 @@ export function SectionCards({ transactions, wallets }: SectionCardsProps) {
 
   return (
     <div className="*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-1 gap-4 px-4 *:data-[slot=card]:bg-gradient-to-bl *:data-[slot=card]:shadow-xs lg:px-6 @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
-      <Card className="@container/card ">
+      <Card className="@container/card">
         <CardHeader>
           <CardDescription>Total Income</CardDescription>
           <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">

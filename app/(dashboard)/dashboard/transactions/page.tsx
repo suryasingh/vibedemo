@@ -73,7 +73,7 @@ export default function TransactionsPage() {
     failed: transactions.filter(t => t.status === "FAILED").length,
     totalVolume: transactions
       .filter(t => t.status === "COMPLETED")
-      .reduce((sum, t) => sum + t.amount, 0),
+      .reduce((sum, t) => sum + Number(t.amount), 0),
   };
 
   // Transform transactions to match DataTable format
@@ -84,7 +84,7 @@ export default function TransactionsPage() {
     status: transaction.status === "COMPLETED" ? "Completed" : 
              transaction.status === "PENDING" ? "Pending" : 
              transaction.status === "FAILED" ? "Failed" : transaction.status,
-    target: `${transaction.amount.toFixed(CURRENCY.DECIMALS)} ${CURRENCY.TICKER}`,
+    target: `${Number(transaction.amount).toFixed(CURRENCY.DECIMALS)} ${CURRENCY.TICKER}`,
     limit: transaction.memo || "-",
     reviewer: transaction.toWallet?.agentName || "External",
   }));

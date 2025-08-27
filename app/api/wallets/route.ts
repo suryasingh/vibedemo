@@ -73,6 +73,9 @@ export async function GET() {
     const wallets = await prisma.wallet.findMany({
       where: {
         userId: session.user.id,
+        agentType: {
+          not: "SYSTEM", // Exclude system wallets from the user interface
+        },
       },
       orderBy: {
         createdAt: "desc",
