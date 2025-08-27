@@ -25,7 +25,7 @@ export function NavMain({
   return (
     <SidebarGroup>
       <SidebarGroupContent className="flex flex-col gap-2">
-        <SidebarMenu>
+        {/* <SidebarMenu>
           <SidebarMenuItem className="flex items-center gap-1.5">
             <SidebarMenuButton
               tooltip="Create Agent"
@@ -36,7 +36,7 @@ export function NavMain({
               <span>Create Agent Wallet</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
-        </SidebarMenu>
+        </SidebarMenu> */}
         <SidebarMenu>
           {items.map((item) => {
             const isActive = pathname === item.url;
