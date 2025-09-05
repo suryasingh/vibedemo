@@ -9,11 +9,11 @@ export const auth = betterAuth({
     enabled: true,
   },
   database: prismaAdapter(prisma, {
-    provider: "postgresql", // or "mysql", "postgresql", ...etc
+    provider: "postgresql",
   }),
   plugins: [
     mcp({
-      loginPage: "/login" // path to your login page
-    })
-  ]
+      loginPage: "/login",
+    }),
+  ],
 });

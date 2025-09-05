@@ -1,14 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { headers } from "next/headers";
-import { auth } from "@/lib/auth";
+import { authenticateRequest } from "@/lib/unified-auth";
 import prisma from "@/lib/prisma";
 import { CURRENCY } from "@/lib/constants";
 
 export async function GET(request: NextRequest) {
   try {
-    // Check authentication
-    const session = await auth.api.getSession({ headers: await headers() });
-    if (!session?.user) {
+    const user = await authenticateRequest(request);
+    if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -23,7 +21,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    let whereClause: any = { userId: session.user.id };
+    let whereClause: any = { userId: user.id };
 
     if (paymentId) {
       whereClause.cardNumber = paymentId;
@@ -47,10 +45,7 @@ export async function GET(request: NextRequest) {
     });
 
     if (!wallet) {
-      return NextResponse.json(
-        { error: "Wallet not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "Wallet not found" }, { status: 404 });
     }
 
     return NextResponse.json({

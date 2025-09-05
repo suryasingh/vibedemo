@@ -1,17 +1,14 @@
-import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
-import { headers } from "next/headers";
+import { authenticateRequest } from "@/lib/unified-auth";
 import { PrismaClient } from "@prisma/client";
+import { NextRequest, NextResponse } from "next/server";
 
 const prisma = new PrismaClient();
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await auth.api.getSession({
-      headers: await headers(),
-    });
-    
-    if (!session?.user?.id) {
+    const user = await authenticateRequest(request);
+
+    if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -19,16 +16,16 @@ export async function GET(request: NextRequest) {
     const services = await prisma.service.findMany({
       where: {
         wallet: {
-          userId: session.user.id
-        }
+          userId: user.id,
+        },
       },
       include: {
-        wallet: true
-      }
+        wallet: true,
+      },
     });
 
     // Convert Decimal to number for JSON serialization
-    const servicesWithNumberPrice = services.map(service => ({
+    const servicesWithNumberPrice = services.map((service) => ({
       ...service,
       pricePerRequest: Number(service.pricePerRequest),
     }));
@@ -45,11 +42,9 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await auth.api.getSession({
-      headers: await headers(),
-    });
-    
-    if (!session?.user?.id) {
+    const user = await authenticateRequest(request);
+
+    if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -62,15 +57,15 @@ export async function POST(request: NextRequest) {
       category,
       isActive,
       apiEndpoint,
-      authMethod
+      authMethod,
     } = body;
 
     // Verify wallet belongs to user
     const wallet = await prisma.wallet.findFirst({
       where: {
         id: walletId,
-        userId: session.user.id
-      }
+        userId: user.id,
+      },
     });
 
     if (!wallet) {
@@ -93,8 +88,8 @@ export async function POST(request: NextRequest) {
         walletId,
       },
       include: {
-        wallet: true
-      }
+        wallet: true,
+      },
     });
 
     // Convert Decimal to number for JSON serialization

@@ -6,7 +6,6 @@ import { BLOCKCHAIN, TOKEN_ABI, CURRENCY } from "@/lib/constants";
 
 const prisma = new PrismaClient();
 
-// Token contract configuration now imported from constants
 
 export async function POST(request: NextRequest) {
   try {

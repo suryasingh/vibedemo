@@ -9,7 +9,9 @@ export interface AuthenticatedUser {
   authType: "session" | "api_key";
 }
 
-export async function authenticateRequest(request: NextRequest): Promise<AuthenticatedUser | null> {
+export async function authenticateRequest(
+  request: NextRequest
+): Promise<AuthenticatedUser | null> {
   try {
     // First, try API key authentication
     const apiKeyUser = await authenticateApiKey(request);
@@ -34,6 +36,18 @@ export async function authenticateRequest(request: NextRequest): Promise<Authent
       };
     }
 
+    const mcpSession = await auth.api.getMcpSession({
+      headers: await headers(),
+    });
+
+    if (mcpSession?.userId) {
+      return {
+        id: mcpSession.userId,
+        permissions: ["read", "transact", "admin"],
+        authType: "session",
+      };
+    }
+
     return null;
   } catch (error) {
     console.error("Error authenticating request:", error);
@@ -41,6 +55,9 @@ export async function authenticateRequest(request: NextRequest): Promise<Authent
   }
 }
 
-export function checkPermission(user: AuthenticatedUser, permission: string): boolean {
+export function checkPermission(
+  user: AuthenticatedUser,
+  permission: string
+): boolean {
   return user.permissions.includes(permission);
 }

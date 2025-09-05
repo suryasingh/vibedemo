@@ -4,6 +4,7 @@ import { headers } from "next/headers";
 import { PrismaClient } from "@prisma/client";
 import { ethers } from "ethers";
 import { BLOCKCHAIN, TOKEN_ABI } from "@/lib/constants";
+import { authenticateRequest } from "@/lib/unified-auth";
 
 const prisma = new PrismaClient();
 
@@ -11,11 +12,11 @@ const prisma = new PrismaClient();
 function generateCardNumber(): string {
   const prefix = "4532"; // Visa prefix for demo
   let number = prefix;
-  
+
   for (let i = 0; i < 12; i++) {
     number += Math.floor(Math.random() * 10);
   }
-  
+
   return number;
 }
 
@@ -43,14 +44,18 @@ async function getTokenBalance(address: string): Promise<number> {
   try {
     // Using Sepolia testnet RPC endpoint
     const provider = new ethers.JsonRpcProvider(BLOCKCHAIN.RPC_FALLBACK); // Using fallback for now
-    const tokenContract = new ethers.Contract(BLOCKCHAIN.TOKEN_CONTRACT_ADDRESS, TOKEN_ABI, provider);
-    
+    const tokenContract = new ethers.Contract(
+      BLOCKCHAIN.TOKEN_CONTRACT_ADDRESS,
+      TOKEN_ABI,
+      provider
+    );
+
     // Get balance and decimals
     const [balance, decimals] = await Promise.all([
       tokenContract.balanceOf(address),
-      tokenContract.decimals()
+      tokenContract.decimals(),
     ]);
-    
+
     // Convert from token units to human readable format
     return parseFloat(ethers.formatUnits(balance, decimals));
   } catch (error) {
@@ -60,19 +65,17 @@ async function getTokenBalance(address: string): Promise<number> {
   }
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    const session = await auth.api.getSession({
-      headers: await headers(),
-    });
+    const user = await authenticateRequest(request);
 
-    if (!session?.user) {
+    if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const wallets = await prisma.wallet.findMany({
       where: {
-        userId: session.user.id,
+        userId: user.id,
         agentType: {
           not: "SYSTEM", // Exclude system wallets from the user interface
         },
@@ -89,7 +92,7 @@ export async function GET() {
         if (wallet.ethereumAddress) {
           tokenBalance = await getTokenBalance(wallet.ethereumAddress);
         }
-        
+
         return {
           ...wallet,
           balance: tokenBalance, // Use token balance instead of stored balance
@@ -109,11 +112,9 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await auth.api.getSession({
-      headers: await headers(),
-    });
+    const user = await authenticateRequest(request);
 
-    if (!session?.user) {
+    if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -133,7 +134,7 @@ export async function POST(request: NextRequest) {
     // Create new wallet
     const wallet = await prisma.wallet.create({
       data: {
-        userId: session.user.id,
+        userId: user.id,
         agentName,
         agentType,
         cardNumber: generateCardNumber(),
