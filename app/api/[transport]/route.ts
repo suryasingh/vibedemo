@@ -17,7 +17,7 @@ const handler = withMcpAuth(auth, (req, session) => {
           try {
             const response = await fetch(
               `${
-                process.env.NEXTAUTH_URL || "http://localhost:3000"
+                process.env.BETTER_AUTH_URL || "http://localhost:3000"
               }/api/wallets`,
               {
                 headers: {
@@ -78,7 +78,7 @@ const handler = withMcpAuth(auth, (req, session) => {
           try {
             const response = await fetch(
               `${
-                process.env.NEXTAUTH_URL || "http://localhost:3000"
+                process.env.BETTER_AUTH_URL || "http://localhost:3000"
               }/api/wallets`,
               {
                 method: "POST",
@@ -143,7 +143,7 @@ const handler = withMcpAuth(auth, (req, session) => {
           try {
             const response = await fetch(
               `${
-                process.env.NEXTAUTH_URL || "http://localhost:3000"
+                process.env.BETTER_AUTH_URL || "http://localhost:3000"
               }/api/transactions`,
               {
                 method: "POST",
@@ -203,7 +203,7 @@ const handler = withMcpAuth(auth, (req, session) => {
           try {
             const response = await fetch(
               `${
-                process.env.NEXTAUTH_URL || "http://localhost:3000"
+                process.env.BETTER_AUTH_URL || "http://localhost:3000"
               }/api/transactions`,
               {
                 headers: {
@@ -270,7 +270,7 @@ const handler = withMcpAuth(auth, (req, session) => {
           try {
             const response = await fetch(
               `${
-                process.env.NEXTAUTH_URL || "http://localhost:3000"
+                process.env.BETTER_AUTH_URL || "http://localhost:3000"
               }/api/wallets`,
               {
                 headers: {
@@ -361,7 +361,7 @@ const handler = withMcpAuth(auth, (req, session) => {
 
             const response = await fetch(
               `${
-                process.env.NEXTAUTH_URL || "http://localhost:3000"
+                process.env.BETTER_AUTH_URL || "http://localhost:3000"
               }/api/balance?${params}`,
               {
                 headers: {
@@ -429,7 +429,7 @@ const handler = withMcpAuth(auth, (req, session) => {
           try {
             const response = await fetch(
               `${
-                process.env.NEXTAUTH_URL || "http://localhost:3000"
+                process.env.BETTER_AUTH_URL || "http://localhost:3000"
               }/api/services`,
               {
                 headers: {
@@ -517,7 +517,7 @@ const handler = withMcpAuth(auth, (req, session) => {
           try {
             const response = await fetch(
               `${
-                process.env.NEXTAUTH_URL || "http://localhost:3000"
+                process.env.BETTER_AUTH_URL || "http://localhost:3000"
               }/api/services`,
               {
                 headers: {
@@ -632,7 +632,7 @@ const handler = withMcpAuth(auth, (req, session) => {
             // Fetch service details
             const serviceResponse = await fetch(
               `${
-                process.env.NEXTAUTH_URL || "http://localhost:3000"
+                process.env.BETTER_AUTH_URL || "http://localhost:3000"
               }/api/services`,
               {
                 headers: {
@@ -663,7 +663,7 @@ const handler = withMcpAuth(auth, (req, session) => {
             // Fetch wallet details
             const walletResponse = await fetch(
               `${
-                process.env.NEXTAUTH_URL || "http://localhost:3001"
+                process.env.BETTER_AUTH_URL || "http://localhost:3001"
               }/api/wallets`,
               {
                 headers: {
@@ -772,7 +772,7 @@ const handler = withMcpAuth(auth, (req, session) => {
             // Fetch service details
             const serviceResponse = await fetch(
               `${
-                process.env.NEXTAUTH_URL || "http://localhost:3000"
+                process.env.BETTER_AUTH_URL || "http://localhost:3000"
               }/api/services`,
               {
                 headers: {
@@ -815,7 +815,7 @@ const handler = withMcpAuth(auth, (req, session) => {
             // Execute the payment transaction
             const transactionResponse = await fetch(
               `${
-                process.env.NEXTAUTH_URL || "http://localhost:3001"
+                process.env.BETTER_AUTH_URL || "http://localhost:3001"
               }/api/transactions`,
               {
                 method: "POST",

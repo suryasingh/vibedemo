@@ -164,7 +164,7 @@ export function SignupForm({
               </div>
 
               {/* Card-like bottom section */}
-              <div className="pt-4 border-t border-white/20">
+              <div className="pt-3 border-white/20">
                 <div className="flex flex-col gap-3">
                   <Button
                     disabled={loading}
@@ -177,12 +177,12 @@ export function SignupForm({
                       "Create Account"
                     )}
                   </Button>
-                  <Button
+                  {/* <Button
                     variant="outline"
                     className="w-full border-white/20 text-accent-foreground hover:bg-white/10 hover:text-accent-foreground"
                   >
                     Register with Google
-                  </Button>
+                  </Button> */}
                 </div>
               </div>
             </div>

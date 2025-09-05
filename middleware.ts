@@ -6,6 +6,14 @@ export async function middleware(request: NextRequest) {
 
   const { pathname } = request.nextUrl;
 
+  // Skip OAuth and auth API routes to prevent redirect interference
+  if (pathname.startsWith("/api/auth") || 
+      pathname.startsWith("/.well-known") ||
+      pathname.includes("/oauth") ||
+      pathname.includes("/authorize")) {
+    return NextResponse.next();
+  }
+
   // Redirect authenticated users away from login/signup pages
   if (sessionCookie && ["/login", "/signup"].includes(pathname)) {
     return NextResponse.redirect(new URL("/dashboard", request.url));
@@ -20,5 +28,10 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/dashboard", "/login", "/signup"], // Apply middleware to these routes
+  matcher: [
+    "/dashboard/:path*", 
+    "/login", 
+    "/signup",
+    "/((?!api/auth|.well-known|_next/static|_next/image|favicon.ico).*)"
+  ],
 };
