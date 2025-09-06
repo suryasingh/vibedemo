@@ -20,6 +20,31 @@ export const auth = betterAuth({
     "http://127.0.0.1:*",
     "https://127.0.0.1:*",
     
+    // Claude and AI development tools
+    "https://claude.ai",
+    "https://claude.ai/*",
+    "https://*.claude.ai",
+    "https://claude.ai:443",
+    "https://claude.ai:443/*",
+    
+    // Other common development/testing tools
+    "https://cursor.sh",
+    "https://*.cursor.sh",
+    "https://vscode.dev",
+    "https://*.vscode.dev",
+    "https://github.com",
+    "https://*.github.com",
+    "https://github.dev",
+    "https://*.github.dev",
+    "https://stackblitz.com",
+    "https://*.stackblitz.com",
+    "https://codesandbox.io",
+    "https://*.codesandbox.io",
+    "https://replit.com",
+    "https://*.replit.com",
+    "https://glitch.com",
+    "https://*.glitch.com",
+    
     // Add your production domains here
     // "https://yourdomain.com",
     // "https://app.yourdomain.com",
