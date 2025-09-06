@@ -105,12 +105,23 @@ export async function POST(request: NextRequest) {
 
       // Create system wallet if it doesn't exist
       if (!systemWallet) {
+        // Generate a unique card number for the system wallet
+        const generateSystemCardNumber = (userId: string): string => {
+          // Use user ID hash to create a unique but consistent card number
+          const userIdHash = userId.split('').reduce((a, b) => {
+            a = ((a << 5) - a) + b.charCodeAt(0);
+            return a & a;
+          }, 0);
+          const absHash = Math.abs(userIdHash);
+          return `9999${String(absHash).padStart(12, '0').slice(-12)}`;
+        };
+
         systemWallet = await prisma.wallet.create({
           data: {
             userId: session.user.id,
             agentName: "SYSTEM_DEPOSIT",
             agentType: "SYSTEM",
-            cardNumber: "0000000000000000",
+            cardNumber: generateSystemCardNumber(session.user.id),
             cardHolderName: "External Deposit System",
             expiryDate: "12/99",
             balance: 0,
@@ -190,19 +201,19 @@ export async function POST(request: NextRequest) {
           },
         });
 
-        // Create a separate record for the ETH gas transfer
-        await prisma.transaction.create({
-          data: {
-            fromWalletId: systemWallet.id, // Use system wallet instead of null
-            toWalletId: wallet.id,
-            amount: DEFAULTS.GAS_ETH_AMOUNT,
-            currency: "ETH",
-            status: "COMPLETED",
-            type: "GAS_TRANSFER",
-            memo: "Gas fee allowance",
-            blockchainHash: ethTxHash,
-          },
-        });
+        // // Create a separate record for the ETH gas transfer
+        // await prisma.transaction.create({
+        //   data: {
+        //     fromWalletId: systemWallet.id, // Use system wallet instead of null
+        //     toWalletId: wallet.id,
+        //     amount: DEFAULTS.GAS_ETH_AMOUNT,
+        //     currency: "ETH",
+        //     status: "COMPLETED",
+        //     type: "GAS_TRANSFER",
+        //     memo: "Gas fee allowance",
+        //     blockchainHash: ethTxHash,
+        //   },
+        // });
 
         return NextResponse.json({
           success: true,
