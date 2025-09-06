@@ -30,7 +30,7 @@ export default async function layout({
       }
     >
       <AppSidebar
-        user={{ ...session.user, image: session.user.image ?? null }}
+        user={{ ...session.user, image: session.user.image ?? null, defaultWalletId: null }}
         variant="inset"
       />
       <SidebarInset>

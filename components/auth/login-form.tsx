@@ -33,13 +33,16 @@ export function LoginForm({
   const [loading, setLoading] = useState(false);
 
   // Get URL parameters to check for OAuth redirect_uri and other OAuth params
-  const searchParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
-  const redirectUri = searchParams?.get('redirect_uri');
-  const clientId = searchParams?.get('client_id');
-  const state = searchParams?.get('state');
-  const scope = searchParams?.get('scope');
-  const responseType = searchParams?.get('response_type');
-  
+  const searchParams =
+    typeof window !== "undefined"
+      ? new URLSearchParams(window.location.search)
+      : null;
+  const redirectUri = searchParams?.get("redirect_uri");
+  const clientId = searchParams?.get("client_id");
+  const state = searchParams?.get("state");
+  const scope = searchParams?.get("scope");
+  const responseType = searchParams?.get("response_type");
+
   // Determine callback URL and if this is an OAuth flow
   const isOAuthFlow = !!(redirectUri && clientId);
   const callbackURL = redirectUri || "/dashboard";
@@ -51,49 +54,51 @@ export function LoginForm({
 
     // For OAuth flows, use form submission to allow proper redirect handling
     if (isOAuthFlow) {
-      console.log("OAuth flow detected, using form submission for redirect handling");
-      
+      console.log(
+        "OAuth flow detected, using form submission for redirect handling"
+      );
+
       // Create a form and submit it to allow the browser to handle the redirect
-      const form = document.createElement('form');
-      form.method = 'POST';
-      form.action = '/api/auth/sign-in/email';
-      
+      const form = document.createElement("form");
+      form.method = "POST";
+      form.action = "/api/auth/sign-in/email";
+
       // Add form fields
-      const emailField = document.createElement('input');
-      emailField.type = 'hidden';
-      emailField.name = 'email';
+      const emailField = document.createElement("input");
+      emailField.type = "hidden";
+      emailField.name = "email";
       emailField.value = email;
       form.appendChild(emailField);
-      
-      const passwordField = document.createElement('input');
-      passwordField.type = 'hidden';
-      passwordField.name = 'password';
+
+      const passwordField = document.createElement("input");
+      passwordField.type = "hidden";
+      passwordField.name = "password";
       passwordField.value = password;
       form.appendChild(passwordField);
-      
-      const callbackField = document.createElement('input');
-      callbackField.type = 'hidden';
-      callbackField.name = 'callbackURL';
+
+      const callbackField = document.createElement("input");
+      callbackField.type = "hidden";
+      callbackField.name = "callbackURL";
       callbackField.value = callbackURL;
       form.appendChild(callbackField);
-      
+
       // Add OAuth parameters if present
       if (clientId) {
-        const clientIdField = document.createElement('input');
-        clientIdField.type = 'hidden';
-        clientIdField.name = 'client_id';
+        const clientIdField = document.createElement("input");
+        clientIdField.type = "hidden";
+        clientIdField.name = "client_id";
         clientIdField.value = clientId;
         form.appendChild(clientIdField);
       }
-      
+
       if (state) {
-        const stateField = document.createElement('input');
-        stateField.type = 'hidden';
-        stateField.name = 'state';
+        const stateField = document.createElement("input");
+        stateField.type = "hidden";
+        stateField.name = "state";
         stateField.value = state;
         form.appendChild(stateField);
       }
-      
+
       document.body.appendChild(form);
       form.submit();
       return;
@@ -160,33 +165,96 @@ export function LoginForm({
   }
 
   return (
-    <div className={cn("flex flex-col gap-6", className)} {...props}>
+    <div
+      className={cn(
+        "flex flex-col gap-6 w-full mx-auto",
+        isOAuthFlow ? "max-w-xl" : "max-w-lg",
+        className
+      )}
+      {...props}
+    >
       {/* Credit Card Style Login */}
-      <Card className="relative">
+      <Card className="relative overflow-hidden">
         <CardHeader className="relative z-10">
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="text-2xl font-bold">
+          <div className="flex items-start justify-between">
+            <div className="flex-1 min-w-0 pr-4">
+              <CardTitle className="text-xl font-bold mb-1">
                 {isOAuthFlow ? "OAuth Authorization" : "User Login"}
               </CardTitle>
-              <CardDescription className="">
-                {isOAuthFlow 
+              <CardDescription className="text-sm leading-relaxed">
+                {isOAuthFlow
                   ? `A third-party application is requesting access to your VibePay account`
-                  : "Access your VibePay account"
-                }
+                  : "Access your VibePay account"}
               </CardDescription>
-              {isOAuthFlow && (
-                <div className="mt-2 text-xs text-muted-foreground">
-                  Redirect URI: {redirectUri}
-                </div>
-              )}
             </div>
-            <div className="p-2 bg-white/20 rounded-lg">
-              <Terminal className="w-6 h-6" />
+            <div
+              className={`p-2 rounded-lg ${
+                isOAuthFlow ? "bg-primary/20" : "bg-white/20"
+              }`}
+            >
+              <Terminal
+                className={`w-6 h-6 ${isOAuthFlow ? "text-primary" : ""}`}
+              />
             </div>
           </div>
         </CardHeader>
-        <CardContent className="relative z-10">
+        <CardContent className="relative z-10 px-6 pb-6">
+          {isOAuthFlow && (
+            <div className="mb-4 space-y-4">
+              {/* OAuth App Info Card */}
+              <div className="bg-background/50 border border-border rounded-xl p-6 w-full">
+                <div className="flex items-start space-x-3">
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-sm font-semibold text-foreground mb-1">
+                      Third-party Application
+                    </h3>
+                    <p className="text-xs text-muted-foreground mb-3">
+                      This application wants to access your VibePay account
+                    </p>
+
+                    {/* OAuth Details - Simplified */}
+                    <div className="space-y-3">
+                      {/* App Domain/Name */}
+                      <div className="py-2">
+                        <span className="text-xs text-muted-foreground block mb-1">Application</span>
+                        <div className="text-sm font-medium text-foreground">
+                          {redirectUri ? new URL(redirectUri).hostname : 'Third-party Application'}
+                        </div>
+                      </div>
+                      
+                      {/* Permissions - Only show if scope exists */}
+                      {scope && (
+                        <div className="py-2">
+                          <span className="text-xs text-muted-foreground block mb-2">This app will have access to:</span>
+                          <div className="flex flex-wrap gap-2">
+                            {scope.split(" ").map((permission, index) => (
+                              <span
+                                key={index}
+                                className="text-xs bg-primary/10 text-primary px-3 py-1 rounded-full"
+                              >
+                                {permission.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+                {/* Authorization Notice */}
+                <div className="bg-muted/50 border border-border rounded-lg p-3 mt-4">
+                  <div className="flex items-start space-x-2">
+                    <div className="flex-shrink-0 w-4 h-4 text-muted-foreground mt-0.5">
+                      ℹ️
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      <strong>Note:</strong> By signing in, you authorize this application to access your VibePay account. Only proceed if you trust this application.
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
           {error && (
             <Alert
               className="mb-4 border border-red-400/50 bg-red-500/10"
@@ -199,7 +267,7 @@ export function LoginForm({
             </Alert>
           )}
           <form onSubmit={(e) => handleSubmit(e)}>
-            <div className="flex flex-col gap-6">
+            <div className="flex flex-col gap-4">
               <div className="grid gap-3">
                 <Label htmlFor="email">Email</Label>
                 <Input
@@ -231,36 +299,32 @@ export function LoginForm({
                 />
               </div>
 
-              {/* Card-like bottom section */}
-              <div className="pt-3 border-white/20">
-                <div className="flex flex-col gap-3">
-                  <Button
-                    disabled={loading}
-                    type="submit"
-                    className="w-full"
-                  >
-                    {loading ? (
-                      <IconLoader className="animate-spin mr-2" stroke={2} />
-                    ) : (
-                      "Sign In"
-                    )}
-                  </Button>
-                  {/* <Button
-                    variant="outline"
-                    className="w-full"
-                  >
-                    Connect with Google
-                  </Button> */}
-                </div>
+              {/* Submit button */}
+              <div className="pt-2">
+                <Button
+                  disabled={loading}
+                  type="submit"
+                  className="w-full h-11"
+                >
+                  {loading ? (
+                    <IconLoader className="animate-spin mr-2" stroke={2} />
+                  ) : isOAuthFlow ? (
+                    "Authorize & Sign In"
+                  ) : (
+                    "Sign In"
+                  )}
+                </Button>
               </div>
             </div>
-            <div className="mt-6 text-center text-sm border-t border-white/20 pt-4">
-              <span>
+
+            {/* Sign up link */}
+            <div className="mt-4 text-center text-sm border-t border-border pt-4">
+              <span className="text-muted-foreground">
                 Don't have an account?
               </span>{" "}
               <a
                 href="/signup"
-                className="underline underline-offset-4"
+                className="text-primary hover:text-primary/80 underline underline-offset-4 transition-colors"
               >
                 Sign up
               </a>

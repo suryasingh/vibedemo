@@ -10,7 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
-import { Code, Zap, Database, Brain, Eye, BarChart } from "lucide-react";
+import { Code, Zap, Database, Brain, Eye, BarChart, Plus, Trash2 } from "lucide-react";
 
 interface CreateServiceFormProps {
   walletId: string;
@@ -22,7 +22,19 @@ interface CreateServiceFormProps {
     category: string;
     isActive: boolean;
     apiEndpoint?: string;
+    apiMethod?: string;
     authMethod?: string;
+    requestFields?: Array<{
+      name: string;
+      type: string;
+      required: boolean;
+      description: string;
+      defaultValue?: string;
+    }>;
+    apiKey?: string;
+    bearerToken?: string;
+    basicAuthUsername?: string;
+    basicAuthPassword?: string;
   }) => Promise<void>;
   onCancel?: () => void;
 }
@@ -44,7 +56,19 @@ export function CreateServiceForm({ walletId, walletName, onSubmit, onCancel }: 
     category: "",
     isActive: true,
     apiEndpoint: "",
-    authMethod: "api-key"
+    apiMethod: "POST",
+    authMethod: "api-key",
+    requestFields: [] as Array<{
+      name: string;
+      type: string;
+      required: boolean;
+      description: string;
+      defaultValue?: string;
+    }>,
+    apiKey: "",
+    bearerToken: "",
+    basicAuthUsername: "",
+    basicAuthPassword: ""
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -182,6 +206,24 @@ export function CreateServiceForm({ walletId, walletName, onSubmit, onCancel }: 
                 Leave empty if you'll handle requests manually
               </p>
             </div>
+
+            {formData.apiEndpoint && (
+              <div className="space-y-2">
+                <Label htmlFor="method">HTTP Method</Label>
+                <Select value={formData.apiMethod} onValueChange={(value) => updateFormData("apiMethod", value)}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="GET">GET</SelectItem>
+                    <SelectItem value="POST">POST</SelectItem>
+                    <SelectItem value="PUT">PUT</SelectItem>
+                    <SelectItem value="PATCH">PATCH</SelectItem>
+                    <SelectItem value="DELETE">DELETE</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
             
             <div className="space-y-2">
               <Label htmlFor="auth">Authentication Method</Label>
@@ -197,6 +239,202 @@ export function CreateServiceForm({ walletId, walletName, onSubmit, onCancel }: 
                 </SelectContent>
               </Select>
             </div>
+
+            {/* Conditional Authentication Fields */}
+            {formData.authMethod === "api-key" && (
+              <div className="space-y-2">
+                <Label htmlFor="apiKey">API Key</Label>
+                <Input
+                  id="apiKey"
+                  type="password"
+                  placeholder="Enter your API key"
+                  value={formData.apiKey}
+                  onChange={(e) => updateFormData("apiKey", e.target.value)}
+                />
+                <p className="text-xs text-muted-foreground">
+                  This key will be sent as X-API-Key header
+                </p>
+              </div>
+            )}
+
+            {formData.authMethod === "bearer-token" && (
+              <div className="space-y-2">
+                <Label htmlFor="bearerToken">Bearer Token</Label>
+                <Input
+                  id="bearerToken"
+                  type="password"
+                  placeholder="Enter your bearer token"
+                  value={formData.bearerToken}
+                  onChange={(e) => updateFormData("bearerToken", e.target.value)}
+                />
+                <p className="text-xs text-muted-foreground">
+                  This token will be sent as Authorization: Bearer header
+                </p>
+              </div>
+            )}
+
+            {formData.authMethod === "basic-auth" && (
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="basicUsername">Username</Label>
+                  <Input
+                    id="basicUsername"
+                    placeholder="Enter username"
+                    value={formData.basicAuthUsername}
+                    onChange={(e) => updateFormData("basicAuthUsername", e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="basicPassword">Password</Label>
+                  <Input
+                    id="basicPassword"
+                    type="password"
+                    placeholder="Enter password"
+                    value={formData.basicAuthPassword}
+                    onChange={(e) => updateFormData("basicAuthPassword", e.target.value)}
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Credentials will be sent as Authorization: Basic header
+                </p>
+              </div>
+            )}
+
+            {formData.authMethod === "none" && (
+              <div className="bg-muted/50 rounded-lg p-3">
+                <p className="text-sm text-muted-foreground">
+                  No authentication will be used. The service endpoint should be publicly accessible.
+                </p>
+              </div>
+            )}
+
+            {/* Request Fields Configuration */}
+            {formData.apiEndpoint && (
+              <div className="space-y-4 mt-6">
+                <Separator />
+                <div className="space-y-2">
+                  <Label>Request Fields</Label>
+                  <p className="text-xs text-muted-foreground">
+                    Define fields that users need to provide when using this service
+                  </p>
+                </div>
+
+                {formData.requestFields.map((field, index) => (
+                  <div key={index} className="p-4 border rounded-lg space-y-3">
+                    <div className="flex items-center justify-between">
+                      <Label className="text-sm font-medium">Field {index + 1}</Label>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          const newFields = formData.requestFields.filter((_, i) => i !== index);
+                          updateFormData("requestFields", newFields);
+                        }}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-1">
+                        <Label className="text-xs">Field Name</Label>
+                        <Input
+                          placeholder="e.g., prompt, query, data"
+                          value={field.name}
+                          onChange={(e) => {
+                            const newFields = [...formData.requestFields];
+                            newFields[index].name = e.target.value;
+                            updateFormData("requestFields", newFields);
+                          }}
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-xs">Type</Label>
+                        <Select 
+                          value={field.type} 
+                          onValueChange={(value) => {
+                            const newFields = [...formData.requestFields];
+                            newFields[index].type = value;
+                            updateFormData("requestFields", newFields);
+                          }}
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="text">Text</SelectItem>
+                            <SelectItem value="number">Number</SelectItem>
+                            <SelectItem value="boolean">Boolean</SelectItem>
+                            <SelectItem value="email">Email</SelectItem>
+                            <SelectItem value="url">URL</SelectItem>
+                            <SelectItem value="textarea">Long Text</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+
+                    <div className="space-y-1">
+                      <Label className="text-xs">Description</Label>
+                      <Input
+                        placeholder="What should the user provide for this field?"
+                        value={field.description}
+                        onChange={(e) => {
+                          const newFields = [...formData.requestFields];
+                          newFields[index].description = e.target.value;
+                          updateFormData("requestFields", newFields);
+                        }}
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-1">
+                        <Label className="text-xs">Default Value (Optional)</Label>
+                        <Input
+                          placeholder="Default value if any"
+                          value={field.defaultValue || ""}
+                          onChange={(e) => {
+                            const newFields = [...formData.requestFields];
+                            newFields[index].defaultValue = e.target.value;
+                            updateFormData("requestFields", newFields);
+                          }}
+                        />
+                      </div>
+                      <div className="flex items-center space-x-2 pt-6">
+                        <Switch
+                          checked={field.required}
+                          onCheckedChange={(checked) => {
+                            const newFields = [...formData.requestFields];
+                            newFields[index].required = checked;
+                            updateFormData("requestFields", newFields);
+                          }}
+                        />
+                        <Label className="text-xs">Required</Label>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    const newField = {
+                      name: "",
+                      type: "text",
+                      required: false,
+                      description: "",
+                      defaultValue: ""
+                    };
+                    updateFormData("requestFields", [...formData.requestFields, newField]);
+                  }}
+                  className="w-full"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Field
+                </Button>
+              </div>
+            )}
           </CardContent>
         </Card>
 

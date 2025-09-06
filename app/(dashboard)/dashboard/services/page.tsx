@@ -80,7 +80,7 @@ export default function ServicesPage() {
 
   const fetchServices = async () => {
     try {
-      const response = await fetch("/api/services");
+      const response = await fetch("/api/services/marketplace");
       if (response.ok) {
         const servicesData = await response.json();
         setServices(servicesData);
@@ -281,6 +281,12 @@ export default function ServicesPage() {
                         </Badge>
                         <Badge variant="outline" className="text-xs">
                           {service.category}
+                        </Badge>
+                        <Badge 
+                          variant={service.apiEndpoint ? "secondary" : "outline"} 
+                          className="text-xs"
+                        >
+                          {service.apiEndpoint ? "API" : "Manual"}
                         </Badge>
                       </div>
                     </div>

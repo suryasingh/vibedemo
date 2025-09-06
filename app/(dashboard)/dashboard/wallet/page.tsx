@@ -16,6 +16,7 @@ import { authClient } from "@/lib/auth-client";
 import { Plus, Wallet } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 interface Wallet {
   id: string;
@@ -46,6 +47,7 @@ export default function WalletPage() {
   const router = useRouter();
   const [wallets, setWallets] = useState<Wallet[]>([]);
   const [services, setServices] = useState<Service[]>([]);
+  const [defaultWalletId, setDefaultWalletId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
 
@@ -53,6 +55,7 @@ export default function WalletPage() {
     checkAuth();
     fetchWallets();
     fetchServices();
+    fetchDefaultWallet();
   }, []);
 
   const checkAuth = async () => {
@@ -86,6 +89,58 @@ export default function WalletPage() {
       }
     } catch (error) {
       console.error("Error fetching services:", error);
+    }
+  };
+
+  const fetchDefaultWallet = async () => {
+    try {
+      const response = await fetch("/api/wallets/default");
+      if (response.ok) {
+        const data = await response.json();
+        setDefaultWalletId(data.defaultWallet?.id || null);
+      }
+    } catch (error) {
+      console.error("Error fetching default wallet:", error);
+    }
+  };
+
+  const handleSetDefault = async (walletId: string, isCurrentlyDefault: boolean) => {
+    try {
+      if (isCurrentlyDefault) {
+        // Remove default status
+        const response = await fetch("/api/wallets/default", {
+          method: "DELETE",
+        });
+        
+        if (response.ok) {
+          setDefaultWalletId(null);
+          toast.success("Default wallet removed successfully");
+        } else {
+          const errorData = await response.json();
+          throw new Error(errorData.error || "Failed to remove default wallet");
+        }
+      } else {
+        // Set as default
+        const response = await fetch("/api/wallets/default", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ walletId }),
+        });
+        
+        if (response.ok) {
+          const result = await response.json();
+          setDefaultWalletId(walletId);
+          toast.success(`${result.defaultWallet?.agentName || "Wallet"} set as default wallet`);
+        } else {
+          const errorData = await response.json();
+          throw new Error(errorData.error || "Failed to set default wallet");
+        }
+      }
+    } catch (error) {
+      console.error("Error setting default wallet:", error);
+      toast.error(error instanceof Error ? error.message : "Failed to update default wallet");
     }
   };
 
@@ -279,12 +334,14 @@ export default function WalletPage() {
               balance={wallet.balance}
               currency={wallet.currency}
               isActive={wallet.isActive}
+              isDefault={wallet.id === defaultWalletId}
               services={getWalletServices(wallet.id)}
               onCreateService={(serviceData) =>
                 handleCreateService(wallet.id, serviceData)
               }
               onSendTransaction={handleSendTransaction}
               onDeposit={handleDeposit}
+              onSetDefault={handleSetDefault}
               variant={"secondary"}
             />
           ))}

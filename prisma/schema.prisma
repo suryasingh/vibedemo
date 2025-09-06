@@ -38,17 +38,19 @@ model session {
 }
 
 model user {
-  id            String    @id
-  name          String
-  email         String    @unique
-  emailVerified Boolean
-  image         String?
-  createdAt     DateTime
-  updatedAt     DateTime
-  account       account[]
-  session       session[]
-  wallets       wallet[]
-  apiKeys       apiKey[]
+  id              String    @id
+  name            String
+  email           String    @unique
+  emailVerified   Boolean
+  image           String?
+  defaultWalletId String?   @unique // Reference to default wallet
+  createdAt       DateTime
+  updatedAt       DateTime
+  account         account[]
+  session         session[]
+  wallets         wallet[]
+  apiKeys         apiKey[]
+  defaultWallet   wallet?   @relation("DefaultWallet", fields: [defaultWalletId], references: [id])
 }
 
 model wallet {
@@ -67,6 +69,7 @@ model wallet {
   createdAt            DateTime      @default(now())
   updatedAt            DateTime      @updatedAt
   user                 user          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  defaultForUser       user?         @relation("DefaultWallet")
   sentTransactions     transaction[] @relation("SenderWallet")
   receivedTransactions transaction[] @relation("ReceiverWallet")
   services             service[]
@@ -89,18 +92,24 @@ model transaction {
 }
 
 model service {
-  id              String   @id @default(cuid())
-  walletId        String
-  name            String
-  description     String
-  pricePerRequest Decimal  @default(0.25)
-  category        String
-  isActive        Boolean  @default(true)
-  apiEndpoint     String?
-  authMethod      String   @default("api-key")
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  wallet          wallet   @relation(fields: [walletId], references: [id], onDelete: Cascade)
+  id                 String   @id @default(cuid())
+  walletId           String
+  name               String
+  description        String
+  pricePerRequest    Decimal  @default(0.25)
+  category           String
+  isActive           Boolean  @default(true)
+  apiEndpoint        String?
+  apiMethod          String   @default("POST") // HTTP method: GET, POST, PUT, DELETE, etc.
+  authMethod         String   @default("api-key")
+  requestFields      Json?    // JSON array of field definitions for the request
+  apiKey             String?  // For API key authentication
+  bearerToken        String?  // For bearer token authentication
+  basicAuthUsername  String?  // For basic auth username
+  basicAuthPassword  String?  // For basic auth password (encrypted)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  wallet             wallet   @relation(fields: [walletId], references: [id], onDelete: Cascade)
 }
 
 model verification {

@@ -57,7 +57,13 @@ export async function POST(request: NextRequest) {
       category,
       isActive,
       apiEndpoint,
+      apiMethod,
       authMethod,
+      requestFields,
+      apiKey,
+      bearerToken,
+      basicAuthUsername,
+      basicAuthPassword,
     } = body;
 
     // Verify wallet belongs to user
@@ -84,7 +90,13 @@ export async function POST(request: NextRequest) {
         category,
         isActive: isActive ?? true,
         apiEndpoint: apiEndpoint || null,
+        apiMethod: apiMethod || "POST",
         authMethod: authMethod || "api-key",
+        requestFields: requestFields || null,
+        apiKey: apiKey || null,
+        bearerToken: bearerToken || null,
+        basicAuthUsername: basicAuthUsername || null,
+        basicAuthPassword: basicAuthPassword || null, // In production, this should be encrypted
         walletId,
       },
       include: {

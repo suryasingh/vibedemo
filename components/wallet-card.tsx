@@ -14,6 +14,9 @@ import {
   Network,
   Send,
   Wallet,
+  Star,
+  StarOff,
+  Loader2,
 } from "lucide-react";
 import { useState } from "react";
 import {
@@ -47,6 +50,7 @@ interface WalletCardProps {
   balance: number;
   currency: string;
   isActive: boolean;
+  isDefault?: boolean;
   variant?: "primary" | "secondary" | "accent";
   className?: string;
   showBalance?: boolean;
@@ -54,6 +58,7 @@ interface WalletCardProps {
   onCreateService?: (serviceData: any) => Promise<void>;
   onSendTransaction?: (transactionData: any) => Promise<void>;
   onDeposit?: () => void;
+  onSetDefault?: (walletId: string, isDefault: boolean) => Promise<void>;
   onClick?: () => void;
 }
 
@@ -67,6 +72,7 @@ export function WalletCard({
   balance,
   currency = "USD",
   isActive = true,
+  isDefault = false,
   variant = "primary",
   className,
   showBalance = true,
@@ -74,6 +80,7 @@ export function WalletCard({
   onCreateService,
   onSendTransaction,
   onDeposit,
+  onSetDefault,
   onClick,
   ...props
 }: WalletCardProps) {
@@ -82,6 +89,7 @@ export function WalletCard({
   const [sendTransactionOpen, setSendTransactionOpen] = useState(false);
   const [depositOpen, setDepositOpen] = useState(false);
   const [depositError, setDepositError] = useState<string | null>(null);
+  const [isSettingDefault, setIsSettingDefault] = useState(false);
 
   const formatCardNumber = (number: string) => {
     return number.replace(/(.{4})/g, "$1 ").trim();
@@ -250,6 +258,53 @@ export function WalletCard({
                     </Dialog>
                   )}
                 </div>
+
+                {/* Default Wallet Toggle */}
+                {onSetDefault && (
+                  <div className="pt-3">
+                    <Button
+                      size="sm"
+                      variant={isDefault ? "default" : "outline"}
+                      disabled={isSettingDefault}
+                      className={cn(
+                        "w-full text-xs",
+                        isDefault 
+                          ? "bg-yellow-500 hover:bg-yellow-600 text-white border-0" 
+                          : "bg-white/10 hover:bg-white/20 border-white/20 text-white"
+                      )}
+                      onClick={async (e) => {
+                        e.stopPropagation();
+                        if (id && onSetDefault && !isSettingDefault) {
+                          setIsSettingDefault(true);
+                          try {
+                            await onSetDefault(id, isDefault);
+                          } catch (error) {
+                            console.error("Failed to set default wallet:", error);
+                          } finally {
+                            setIsSettingDefault(false);
+                          }
+                        }
+                      }}
+                    >
+                      {isSettingDefault ? (
+                        <>
+                          <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                          {isDefault ? "Removing..." : "Setting..."}
+                        </>
+                      ) : isDefault ? (
+                        <>
+                          <Star className="w-3 h-3 mr-1 fill-current" />
+                          Default Wallet
+                        </>
+                      ) : (
+                        <>
+                          <StarOff className="w-3 h-3 mr-1" />
+                          Set as Default
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                )}
               </div>
             </div>
           )}

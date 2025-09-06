@@ -411,6 +411,174 @@ const handler = withMcpAuth(auth, (req, session) => {
         }
       );
 
+      // Tool to get default wallet
+      server.tool(
+        "get_default_wallet",
+        "Get the user's default wallet information",
+        {},
+        async () => {
+          try {
+            const response = await fetch(
+              `${
+                process.env.BETTER_AUTH_URL || "http://localhost:3000"
+              }/api/wallets/default`,
+              {
+                headers: {
+                  Authorization: `Bearer ${session.accessToken}`,
+                },
+              }
+            );
+
+            if (!response.ok) {
+              throw new Error("Failed to fetch default wallet");
+            }
+
+            const result = await response.json();
+
+            if (!result.defaultWallet) {
+              return {
+                content: [
+                  {
+                    type: "text",
+                    text: "⚠️ No default wallet set. Use 'set_default_wallet' to set one.",
+                  },
+                ],
+              };
+            }
+
+            const wallet = result.defaultWallet;
+            return {
+              content: [
+                {
+                  type: "text",
+                  text:
+                    `⭐ **Default Wallet**\n\n` +
+                    `🏷️ **Agent:** ${wallet.agentName} (${wallet.agentType})\n` +
+                    `💳 **Payment ID:** ${wallet.cardNumber}\n` +
+                    `💵 **Balance:** ${parseFloat(wallet.balance).toFixed(2)} ${
+                      wallet.currency
+                    }\n` +
+                    `✅ **Status:** ${
+                      wallet.isActive ? "Active" : "Inactive"
+                    }\n` +
+                    `🆔 **Wallet ID:** ${wallet.id}`,
+                },
+              ],
+            };
+          } catch (error) {
+            return {
+              content: [
+                {
+                  type: "text",
+                  text: `Error fetching default wallet: ${error}`,
+                },
+              ],
+              isError: true,
+            };
+          }
+        }
+      );
+
+      // Tool to set default wallet
+      server.tool(
+        "set_default_wallet",
+        "Set a wallet as the default for service payments",
+        {
+          walletId: z.string().describe("ID of the wallet to set as default"),
+        },
+        async ({ walletId }) => {
+          try {
+            const response = await fetch(
+              `${
+                process.env.BETTER_AUTH_URL || "http://localhost:3000"
+              }/api/wallets/default`,
+              {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  Authorization: `Bearer ${session.accessToken}`,
+                },
+                body: JSON.stringify({ walletId }),
+              }
+            );
+
+            if (!response.ok) {
+              const errorData = await response.json();
+              throw new Error(
+                errorData.error || "Failed to set default wallet"
+              );
+            }
+
+            const result = await response.json();
+            const wallet = result.defaultWallet;
+
+            return {
+              content: [
+                {
+                  type: "text",
+                  text: `⭐ Successfully set **${wallet.agentName}** as your default wallet!\n\n💡 This wallet will now be used automatically for service payments when no specific wallet is provided.`,
+                },
+              ],
+            };
+          } catch (error) {
+            return {
+              content: [
+                {
+                  type: "text",
+                  text: `Error setting default wallet: ${error}`,
+                },
+              ],
+              isError: true,
+            };
+          }
+        }
+      );
+
+      // Tool to remove default wallet
+      server.tool(
+        "remove_default_wallet",
+        "Remove the current default wallet setting",
+        {},
+        async () => {
+          try {
+            const response = await fetch(
+              `${
+                process.env.BETTER_AUTH_URL || "http://localhost:3000"
+              }/api/wallets/default`,
+              {
+                method: "DELETE",
+                headers: {
+                  Authorization: `Bearer ${session.accessToken}`,
+                },
+              }
+            );
+
+            if (!response.ok) {
+              throw new Error("Failed to remove default wallet");
+            }
+
+            return {
+              content: [
+                {
+                  type: "text",
+                  text: "✅ Default wallet removed. You'll need to specify a wallet for future service payments.",
+                },
+              ],
+            };
+          } catch (error) {
+            return {
+              content: [
+                {
+                  type: "text",
+                  text: `Error removing default wallet: ${error}`,
+                },
+              ],
+              isError: true,
+            };
+          }
+        }
+      );
+
       // Tool to discover and list all available services
       server.tool(
         "discover_services",
@@ -430,7 +598,7 @@ const handler = withMcpAuth(auth, (req, session) => {
             const response = await fetch(
               `${
                 process.env.BETTER_AUTH_URL || "http://localhost:3000"
-              }/api/services`,
+              }/api/services/marketplace`,
               {
                 headers: {
                   Authorization: `Bearer ${session.accessToken}`,
@@ -472,19 +640,36 @@ const handler = withMcpAuth(auth, (req, session) => {
                 {
                   type: "text",
                   text: `🔍 Found ${services.length} services:\n\n${services
-                    .map(
-                      (s: any) =>
+                    .map((s: any) => {
+                      let serviceInfo =
                         `📋 **${s.name}** (${s.category})\n` +
-                        `   └ ${s.description}\n` +
+                        `   └ 📝 ${s.description}\n` +
                         `   └ 💰 ${s.pricePerRequest} ${CURRENCY.TICKER} per request\n` +
                         `   └ 🏪 Provider: ${
                           s.wallet?.agentName || "Unknown"
-                        }\n` +
+                        } (${s.wallet?.agentType || "Unknown"})\n` +
                         `   └ 💳 Payment ID: ${
                           s.wallet?.cardNumber || "Unknown"
                         }\n` +
-                        `   └ ✅ Status: ${s.isActive ? "Active" : "Inactive"}`
-                    )
+                        `   └ ✅ Status: ${s.isActive ? "Active" : "Inactive"}`;
+
+                      // Add request fields info if available
+                      if (
+                        s.requestFields &&
+                        Array.isArray(s.requestFields) &&
+                        s.requestFields.length > 0
+                      ) {
+                        serviceInfo += `\n   └ 📝 Required Fields: ${
+                          s.requestFields
+                            .filter((field: any) => field.required)
+                            .map((field: any) => field.name)
+                            .join(", ") || "None"
+                        }`;
+                      }
+
+                      serviceInfo += `\n   └ 🆔 Service ID: ${s.id}`;
+                      return serviceInfo;
+                    })
                     .join("\n\n")}`,
                 },
               ],
@@ -493,6 +678,103 @@ const handler = withMcpAuth(auth, (req, session) => {
             return {
               content: [
                 { type: "text", text: `Error discovering services: ${error}` },
+              ],
+              isError: true,
+            };
+          }
+        }
+      );
+
+      // Tool to get detailed service information including request fields
+      server.tool(
+        "get_service_details",
+        "Get detailed information about a specific service including required fields",
+        {
+          serviceId: z
+            .string()
+            .describe("ID of the service to get details for"),
+        },
+        async ({ serviceId }) => {
+          try {
+            const response = await fetch(
+              `${
+                process.env.BETTER_AUTH_URL || "http://localhost:3000"
+              }/api/services/marketplace`,
+              {
+                headers: {
+                  Authorization: `Bearer ${session.accessToken}`,
+                },
+              }
+            );
+
+            if (!response.ok) {
+              throw new Error("Failed to fetch services");
+            }
+
+            const services = await response.json();
+            const service = services.find((s: any) => s.id === serviceId);
+
+            if (!service) {
+              return {
+                content: [
+                  {
+                    type: "text",
+                    text: `❌ Service with ID ${serviceId} not found.`,
+                  },
+                ],
+                isError: true,
+              };
+            }
+
+            let serviceDetails = `📋 **${service.name}**\n\n`;
+            serviceDetails += `**Description:** ${service.description}\n`;
+            serviceDetails += `**Category:** ${service.category}\n`;
+            serviceDetails += `**Price:** ${service.pricePerRequest} ${CURRENCY.TICKER} per request\n`;
+            serviceDetails += `**Provider:** ${
+              service.wallet?.agentName || "Unknown"
+            } (${service.wallet?.agentType || "Unknown"})\n`;
+            serviceDetails += `**Status:** ${
+              service.isActive ? "Active" : "Inactive"
+            }\n\n`;
+
+            // Show request fields if available
+            if (
+              service.requestFields &&
+              Array.isArray(service.requestFields) &&
+              service.requestFields.length > 0
+            ) {
+              serviceDetails += `**🔧 Request Fields:**\n`;
+              service.requestFields.forEach((field: any, index: number) => {
+                serviceDetails += `${index + 1}. **${field.name}** (${
+                  field.type
+                })${field.required ? " *required*" : ""}\n`;
+                serviceDetails += `   └ ${field.description}\n`;
+                if (field.defaultValue) {
+                  serviceDetails += `   └ Default: "${field.defaultValue}"\n`;
+                }
+              });
+              serviceDetails += `\n💡 **Note:** When using this service, provide these fields in the servicePayload parameter.\n`;
+            } else {
+              serviceDetails += `**Request Fields:** None required - just provide requestDetails\n`;
+            }
+
+            serviceDetails += `\n🚀 **Ready to use?** Call execute_service_transaction with serviceId: ${service.id}`;
+
+            return {
+              content: [
+                {
+                  type: "text",
+                  text: serviceDetails,
+                },
+              ],
+            };
+          } catch (error) {
+            return {
+              content: [
+                {
+                  type: "text",
+                  text: `Error fetching service details: ${error}`,
+                },
               ],
               isError: true,
             };
@@ -518,7 +800,7 @@ const handler = withMcpAuth(auth, (req, session) => {
             const response = await fetch(
               `${
                 process.env.BETTER_AUTH_URL || "http://localhost:3000"
-              }/api/services`,
+              }/api/services/marketplace`,
               {
                 headers: {
                   Authorization: `Bearer ${session.accessToken}`,
@@ -633,7 +915,7 @@ const handler = withMcpAuth(auth, (req, session) => {
             const serviceResponse = await fetch(
               `${
                 process.env.BETTER_AUTH_URL || "http://localhost:3000"
-              }/api/services`,
+              }/api/services/marketplace`,
               {
                 headers: {
                   Authorization: `Bearer ${session.accessToken}`,
@@ -745,18 +1027,35 @@ const handler = withMcpAuth(auth, (req, session) => {
       // Tool to execute a service transaction and payment
       server.tool(
         "execute_service_transaction",
-        "Execute payment and service request transaction",
+        "Execute payment and service request",
         {
           serviceId: z.string().describe("ID of the service to use"),
-          fromWalletId: z.string().describe("ID of the wallet to pay from"),
+          fromWalletId: z
+            .string()
+            .optional()
+            .describe(
+              "ID of the wallet to pay from (uses default wallet if not provided)"
+            ),
           requestDetails: z
             .string()
             .describe("Details of what you want the service to do"),
+          servicePayload: z
+            .record(z.any())
+            .optional()
+            .describe(
+              "Additional parameters for the service request (optional)"
+            ),
           confirmPayment: z
             .boolean()
             .describe("Confirm you want to proceed with the payment"),
         },
-        async ({ serviceId, fromWalletId, requestDetails, confirmPayment }) => {
+        async ({
+          serviceId,
+          fromWalletId,
+          requestDetails,
+          servicePayload,
+          confirmPayment,
+        }) => {
           try {
             if (!confirmPayment) {
               return {
@@ -769,76 +1068,32 @@ const handler = withMcpAuth(auth, (req, session) => {
               };
             }
 
-            // Fetch service details
-            const serviceResponse = await fetch(
+            // Execute the service request with payment
+            const executionResponse = await fetch(
               `${
                 process.env.BETTER_AUTH_URL || "http://localhost:3000"
-              }/api/services`,
-              {
-                headers: {
-                  Authorization: `Bearer ${session.accessToken}`,
-                },
-              }
-            );
-
-            if (!serviceResponse.ok) {
-              throw new Error("Failed to fetch services");
-            }
-
-            const services = await serviceResponse.json();
-            const service = services.find((s: any) => s.id === serviceId);
-
-            if (!service) {
-              return {
-                content: [
-                  {
-                    type: "text",
-                    text: `Service with ID ${serviceId} not found.`,
-                  },
-                ],
-                isError: true,
-              };
-            }
-
-            if (!service.isActive) {
-              return {
-                content: [
-                  {
-                    type: "text",
-                    text: `❌ Service "${service.name}" is currently inactive.`,
-                  },
-                ],
-                isError: true,
-              };
-            }
-
-            // Execute the payment transaction
-            const transactionResponse = await fetch(
-              `${
-                process.env.BETTER_AUTH_URL || "http://localhost:3001"
-              }/api/transactions`,
+              }/api/services/execute`,
               {
                 method: "POST",
                 headers: {
-                  "Content-Type": "application/json",
                   Authorization: `Bearer ${session.accessToken}`,
                 },
                 body: JSON.stringify({
-                  fromWalletId: fromWalletId,
-                  toPaymentId: service.wallet?.cardNumber,
-                  amount: service.pricePerRequest.toString(),
-                  memo: `Service: ${service.name} | Request: ${requestDetails}`,
+                  serviceId,
+                  fromWalletId, // Optional - uses default wallet if not provided
+                  requestDetails,
+                  servicePayload: servicePayload || {},
                 }),
               }
             );
 
-            if (!transactionResponse.ok) {
-              const errorData = await transactionResponse.json();
+            if (!executionResponse.ok) {
+              const errorData = await executionResponse.json();
               return {
                 content: [
                   {
                     type: "text",
-                    text: `❌ Payment failed: ${
+                    text: `❌ Service execution failed: ${
                       errorData.error || "Unknown error"
                     }`,
                   },
@@ -847,29 +1102,60 @@ const handler = withMcpAuth(auth, (req, session) => {
               };
             }
 
-            const transactionResult = await transactionResponse.json();
+            const result = await executionResponse.json();
+
+            if (!result.success) {
+              return {
+                content: [
+                  {
+                    type: "text",
+                    text: `❌ Service execution failed: ${
+                      result.error || "Unknown error"
+                    }`,
+                  },
+                ],
+                isError: true,
+              };
+            }
+
+            let responseText = `🎉 **Service Execution Completed!**\n\n`;
+
+            // Payment details
+            responseText += `💳 **Payment Details:**\n`;
+            responseText += `   └ Transaction ID: ${result.transaction.id}\n`;
+            responseText += `   └ Status: ${result.transaction.status}\n\n`;
+
+            // Service response details
+            if (result.serviceResponse) {
+              const response = result.serviceResponse;
+
+              if (response.type === "manual_service") {
+                responseText += `📋 **Service Request:**\n`;
+                responseText += `   └ ${response.message}\n\n`;
+              } else if (response.status) {
+                responseText += `📊 **Service Response:**\n`;
+                responseText += `   └ Status: ${response.status} ${response.statusText}\n`;
+                responseText += `   └ Completed: ${response.timestamp}\n\n`;
+
+                if (response.data) {
+                  responseText += `📄 **Service Results:**\n`;
+                  const dataStr =
+                    typeof response.data === "string"
+                      ? response.data
+                      : JSON.stringify(response.data, null, 2);
+
+                  responseText += `\`\`\`\n${dataStr}\n\`\`\`\n\n`;
+                }
+              }
+            }
+
+            responseText += `✅ **Service execution completed successfully!**`;
 
             return {
               content: [
                 {
                   type: "text",
-                  text:
-                    `🎉 **Service Transaction Completed!**\n\n` +
-                    `💳 **Payment Details:**\n` +
-                    `   └ Transaction ID: ${transactionResult.transaction.id}\n` +
-                    `   └ Amount Paid: ${service.pricePerRequest} ${CURRENCY.TICKER}\n` +
-                    `   └ Service Provider: ${service.wallet?.agentName}\n` +
-                    `   └ Blockchain Hash: ${transactionResult.transactionHash}\n` +
-                    `   └ Status: ${transactionResult.transaction.status}\n\n` +
-                    `📋 **Service Request:**\n` +
-                    `   └ Service: ${service.name}\n` +
-                    `   └ Category: ${service.category}\n` +
-                    `   └ Your Request: ${requestDetails}\n\n` +
-                    `🔄 **Next Steps:**\n` +
-                    `The service provider has been notified and will process your request. ` +
-                    `You can track the status using the transaction ID: ${transactionResult.transaction.id}\n\n` +
-                    `📞 **Contact:** If you need to communicate with the service provider, ` +
-                    `use their payment ID: ${service.wallet?.cardNumber}`,
+                  text: responseText,
                 },
               ],
             };
@@ -878,7 +1164,7 @@ const handler = withMcpAuth(auth, (req, session) => {
               content: [
                 {
                   type: "text",
-                  text: `Error executing service transaction: ${error}`,
+                  text: `Error executing service: ${error}`,
                 },
               ],
               isError: true,
@@ -909,9 +1195,22 @@ const handler = withMcpAuth(auth, (req, session) => {
           check_balance: {
             description: "Check wallet balance by payment ID or agent name",
           },
+          get_default_wallet: {
+            description: "Get the user's default wallet information",
+          },
+          set_default_wallet: {
+            description: "Set a wallet as the default for service payments",
+          },
+          remove_default_wallet: {
+            description: "Remove the current default wallet setting",
+          },
           discover_services: {
             description:
               "Discover all available services in the agent marketplace",
+          },
+          get_service_details: {
+            description:
+              "Get detailed information about a specific service including required fields",
           },
           find_service_for_task: {
             description:
@@ -922,7 +1221,7 @@ const handler = withMcpAuth(auth, (req, session) => {
               "Get a detailed quote and payment breakdown for using a specific service",
           },
           execute_service_transaction: {
-            description: "Execute payment and service request transaction",
+            description: "Execute payment and service request",
           },
         },
       },

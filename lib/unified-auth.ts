@@ -6,7 +6,8 @@ import { authenticateApiKey, hasPermission, ApiKeyUser } from "@/lib/api-auth";
 export interface AuthenticatedUser {
   id: string;
   permissions: string[];
-  authType: "session" | "api_key";
+  authType: "session" | "api_key" | "mcp";
+  accessToken?: string;
 }
 
 export async function authenticateRequest(
@@ -44,7 +45,8 @@ export async function authenticateRequest(
       return {
         id: mcpSession.userId,
         permissions: ["read", "transact", "admin"],
-        authType: "session",
+        authType: "mcp",
+        accessToken: mcpSession.accessToken,
       };
     }
 

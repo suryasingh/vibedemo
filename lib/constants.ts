@@ -13,7 +13,7 @@ export const BLOCKCHAIN = {
   // Sepolia Testnet USDC Contract
   TOKEN_CONTRACT_ADDRESS: "0x5069B457800815A96EB31D08116753ba6A645Bd9",
   // Sepolia Testnet RPC via Infura
-  RPC_URL: "https://sepolia.infura.io/v3/YOUR_PROJECT_ID",
+  RPC_URL: "https://sepolia.infura.io/v3/c730e202ad454729ad11b835de78bfc8",
   // Alternative public RPC for Sepolia
   RPC_FALLBACK: "https://sepolia.drpc.org",
   NETWORK_NAME: "Sepolia Testnet",
