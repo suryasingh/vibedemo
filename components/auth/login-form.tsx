@@ -183,8 +183,8 @@ export function LoginForm({
               </CardTitle>
               <CardDescription className="text-sm leading-relaxed">
                 {isOAuthFlow
-                  ? `A third-party application is requesting access to your VibePay account`
-                  : "Access your VibePay account"}
+                  ? `A third-party application is requesting access to your Vypr account`
+                  : "Access your Vypr account"}
               </CardDescription>
             </div>
             <div
@@ -209,7 +209,7 @@ export function LoginForm({
                       Third-party Application
                     </h3>
                     <p className="text-xs text-muted-foreground mb-3">
-                      This application wants to access your VibePay account
+                      This application wants to access your Vypr account
                     </p>
 
                     {/* OAuth Details - Simplified */}
@@ -248,7 +248,7 @@ export function LoginForm({
                       ℹ️
                     </div>
                     <div className="text-xs text-muted-foreground">
-                      <strong>Note:</strong> By signing in, you authorize this application to access your VibePay account. Only proceed if you trust this application.
+                      <strong>Note:</strong> By signing in, you authorize this application to access your Vypr account. Only proceed if you trust this application.
                     </div>
                   </div>
                 </div>

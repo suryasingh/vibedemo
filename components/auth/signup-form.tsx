@@ -81,7 +81,7 @@ export function SignupForm({
                 Create Account
               </CardTitle>
               <CardDescription className="text-accent-foreground/80">
-                Join VibePay to manage your agents
+                Join Vypr to manage your agents
               </CardDescription>
             </div>
             <div className="p-2 bg-white/20 rounded-lg">

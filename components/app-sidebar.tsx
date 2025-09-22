@@ -155,7 +155,7 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
                 <div className="w-6 h-6 bg-white border border-white/20 flex items-center justify-center">
                   <div className="w-2 h-2 bg-black"></div>
                 </div>
-                <span className="text-3xl! font-medium">VibePay</span>
+                <span className="text-3xl! font-medium">Vypr</span>
               </a>
             </SidebarMenuButton>
           </SidebarMenuItem>

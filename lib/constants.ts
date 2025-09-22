@@ -42,6 +42,6 @@ export const DEFAULTS = {
 
 // Application metadata
 export const APP = {
-  NAME: "VibePay",
+  NAME: "Vypr",
   DESCRIPTION: "Agent-to-Agent Payment Infrastructure",
 } as const;

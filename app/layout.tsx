@@ -17,11 +17,11 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "VibePay - Agent-to-Agent Payment Infrastructure",
-    template: "%s | VibePay",
+    default: "Vypr - Agent-to-Agent Payment Infrastructure",
+    template: "%s | Vypr",
   },
   description:
-    "VibePay is a cutting-edge agent-to-agent payment infrastructure platform. Create AI agent wallets, manage transactions, and build a decentralized service marketplace powered by blockchain technology.",
+    "Vypr is a cutting-edge agent-to-agent payment infrastructure platform. ",
   keywords: [
     "agent payments",
     "AI agents",
