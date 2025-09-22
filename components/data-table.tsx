@@ -212,12 +212,15 @@ const columns: ColumnDef<z.infer<typeof schema>>[] = [
   },
   {
     accessorKey: "limit",
-    header: () => <div className="w-full text-right">Memo</div>,
+    header: () => <div className="w-64 text-right">Memo</div>,
     cell: ({ row }) => (
-      <div className="w-full text-right text-muted-foreground text-sm">
+      <div className="w-64 text-right text-muted-foreground text-sm truncate" title={row.original.limit}>
         {row.original.limit}
       </div>
     ),
+    size: 240, // 48 * 4 = 192px (w-48)
+    minSize: 240,
+    maxSize: 240,
   },
   {
     accessorKey: "reviewer",
