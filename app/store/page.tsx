@@ -412,7 +412,7 @@ export default function StorePage() {
                   />
                   <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/30 to-transparent" />
                   <div className="relative z-10 h-full flex flex-col justify-center p-8 md:p-12 lg:p-16 text-white max-w-3xl">
-                    <div className="space-y-6">
+                    <div className="">
                       <div className="inline-block">
                         <Badge
                           variant="secondary"
@@ -423,7 +423,7 @@ export default function StorePage() {
                       </div>
                       <h2 className="text-4xl md:text-6xl lg:text-7xl font-bold leading-tight tracking-tight">
                         New Season
-                        <span className="block text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-300">
+                        <span className="block text-transparent bg-clip-text bg-gradient-to-r from-pink-600 to-gray-300">
                           Arrivals
                         </span>
                       </h2>
@@ -459,7 +459,7 @@ export default function StorePage() {
                   />
                   <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/30 to-transparent" />
                   <div className="relative z-10 h-full flex flex-col justify-center p-8 md:p-12 lg:p-16 text-white max-w-3xl">
-                    <div className="space-y-6">
+                    <div className="">
                       <div className="inline-block">
                         <Badge
                           variant="destructive"
@@ -506,7 +506,7 @@ export default function StorePage() {
                   />
                   <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/30 to-transparent" />
                   <div className="relative z-10 h-full flex flex-col justify-center p-8 md:p-12 lg:p-16 text-white max-w-3xl">
-                    <div className="space-y-6">
+                    <div className="">
                       <div className="inline-block">
                         <Badge
                           variant="secondary"
