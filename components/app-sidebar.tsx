@@ -9,6 +9,8 @@ import {
   IconShoppingCart,
   IconTransfer,
   IconWallet,
+  IconShirt,
+  IconChefHat,
 } from "@tabler/icons-react";
 import * as React from "react";
 
@@ -108,16 +110,16 @@ const data = {
     },
   ],
   navSecondary: [
-    // {
-    //   title: "Home",
-    //   url: "/",
-    //   icon: IconHome,
-    // },
-    // {
-    //   title: "Clone Repository",
-    //   url: "https://github.com/Achour/nextjs-better-auth",
-    //   icon: IconCopy,
-    // },
+    {
+      title: "Clothing Store",
+      url: "/store",
+      icon: IconShirt,
+    },
+    {
+      title: "Food & Beverage",
+      url: "/fnb-store",
+      icon: IconChefHat,
+    },
   ],
   documents: [],
 };

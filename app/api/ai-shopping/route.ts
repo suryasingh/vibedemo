@@ -6,57 +6,87 @@ import { generateText } from "ai";
 import { z } from "zod";
 import { CURRENCY } from "@/lib/constants";
 
-export async function POST(request: NextRequest) {
-  try {
-    const user = await authenticateRequest(request);
-
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const body = await request.json();
-    const { message, conversationHistory } = body;
-
-    if (!message || message.trim().length === 0) {
-      return NextResponse.json(
-        { error: "Message is required and cannot be empty" },
-        { status: 400 }
-      );
-    }
-
-    // Use the AI SDK to generate a response with tool calling
-    const aiResponse = await generateAIResponse(
-      message,
-      user.id,
-      conversationHistory,
-      request
-    );
-
-    return NextResponse.json(aiResponse);
-  } catch (error) {
-    console.error("Error in AI shopping assistant:", error);
-    return NextResponse.json(
-      { error: "Failed to process request" },
-      { status: 500 }
-    );
-  }
+// Helper function to get the correct store API endpoint
+function getStoreApiEndpoint(storeType: string): string {
+  return storeType === 'fnb' ? '/api/store/fnb' : '/api/store/products';
 }
 
-async function generateAIResponse(
-  userMessage: string,
-  userId: string,
-  conversationHistory: any[] = [],
-  request: NextRequest
-) {
-  try {
-    // Debug: Log conversation history to see what context we have
-    console.log('Conversation history received:', JSON.stringify(conversationHistory, null, 2));
-    
-    // Build conversation context
-    const messages = [
-      {
-        role: "system" as const,
-        content: `You are an AI shopping agent for VibePay, an agent-to-agent payment platform. You can:
+// Helper function to get categories based on store type
+function getStoreCategories(storeType: string): string[] {
+  return storeType === 'fnb' 
+    ? ["beverages", "appetizers", "mains", "desserts"]
+    : ["tshirts", "pants", "accessories"];
+}
+
+// Helper function to get product keywords based on store type
+function getProductKeywords(storeType: string): string[] {
+  return storeType === 'fnb'
+    ? ["food", "drink", "meal", "beverage", "pizza", "burger", "salad", "dessert", "coffee", "juice"]
+    : ["t-shirt", "shirt", "pants", "clothes", "clothing", "accessories"];
+}
+
+// Helper function to get default suggestions based on store type
+function getDefaultSuggestions(storeType: string): string[] {
+  return storeType === 'fnb'
+    ? [
+        "Show me beverages",
+        "Find meals under $25",
+        "Check my wallet",
+        "Get food recommendations",
+      ]
+    : [
+        "Show me t-shirts", 
+        "Find pants under $60",
+        "Check my wallet",
+        "Get recommendations",
+      ];
+}
+
+// Helper function to get dynamic system prompt based on store type
+function getSystemPrompt(storeType: string): string {
+  const isFnB = storeType === 'fnb';
+  
+  if (isFnB) {
+    return `You are an AI food & beverage assistant for VibePay, an agent-to-agent payment platform. You can:
+
+1. Discover food and drinks in our restaurant (beverages, appetizers, mains, desserts)
+2. Execute real food orders using the user's wallet
+3. Check wallet balances and payment capabilities
+4. Provide personalized meal recommendations
+
+You have access to real tools that can:
+- Find food items in our menu database
+- Execute single or bulk food orders with real money
+- Check user wallet balances
+- Complete orders end-to-end
+- Handle multiple items in one order
+- Get personalized recommendations based on user preferences, dietary needs, and budget
+
+IMPORTANT TOOL USAGE:
+- Use discover_products for general menu searches and browsing food items
+- Use get_user_recommendations when users ask for food recommendations, meal suggestions, or "what do you recommend"
+- Use check_wallet to check user's wallet balance and payment capabilities
+- Use execute_purchase for single item orders
+- Use bulk_purchase when the user wants multiple food items (2 or more products) in one order
+
+IMPORTANT ORDERING BEHAVIOR:
+- When you discover food items using the discover_products tool, you receive complete product information including the product ID
+- If a user asks to order a specific food item that you just found, use the product ID from the discovery results immediately
+- Do NOT search again for food items you already found - use the existing product information
+- Always proceed directly to order when the user confirms they want to buy something
+- For bulk orders, show a summary of all items and total cost before confirming
+
+RECOMMENDATION BEHAVIOR:
+- When users ask "What do you recommend?", "Any suggestions?", or similar, use the get_user_recommendations tool
+- Consider their budget if mentioned, dietary restrictions, spice preferences, or ask about preferences
+- Present recommendations with reasons why they're good choices (taste, health, popularity)
+- Make the recommendations actionable with order options
+
+Be helpful, conversational, and proactive about food. When users ask to order something, actually complete the order for them using the product information you already have. Always confirm orders and provide transaction IDs.
+
+Current menu categories: beverages ($5-13), appetizers ($14-25), mains ($19-29), desserts ($10-13).`;
+  } else {
+    return `You are an AI shopping agent for VibePay, an agent-to-agent payment platform. You can:
 
 1. Discover products in our clothing store (t-shirts, pants, accessories)
 2. Execute real purchases using the user's wallet
@@ -93,7 +123,63 @@ RECOMMENDATION BEHAVIOR:
 
 Be helpful, conversational, and proactive. When users ask to buy something, actually complete the purchase for them using the product information you already have. Always confirm transactions and provide transaction IDs.
 
-Current store categories: t-shirts ($25-45), pants ($50-80), accessories ($20-40).`,
+Current store categories: t-shirts ($25-45), pants ($50-80), accessories ($20-40).`;
+  }
+}
+
+export async function POST(request: NextRequest) {
+  try {
+    const user = await authenticateRequest(request);
+
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const body = await request.json();
+    const { message, conversationHistory, storeType = 'clothing' } = body;
+
+    if (!message || message.trim().length === 0) {
+      return NextResponse.json(
+        { error: "Message is required and cannot be empty" },
+        { status: 400 }
+      );
+    }
+
+    // Use the AI SDK to generate a response with tool calling
+    const aiResponse = await generateAIResponse(
+      message,
+      user.id,
+      conversationHistory,
+      request,
+      storeType
+    );
+
+    return NextResponse.json(aiResponse);
+  } catch (error) {
+    console.error("Error in AI shopping assistant:", error);
+    return NextResponse.json(
+      { error: "Failed to process request" },
+      { status: 500 }
+    );
+  }
+}
+
+async function generateAIResponse(
+  userMessage: string,
+  userId: string,
+  conversationHistory: any[] = [],
+  request: NextRequest,
+  storeType: string = 'clothing'
+) {
+  try {
+    // Debug: Log conversation history to see what context we have
+    console.log('Conversation history received:', JSON.stringify(conversationHistory, null, 2));
+    
+    // Build conversation context
+    const messages = [
+      {
+        role: "system" as const,
+        content: getSystemPrompt(storeType),
       },
       // Add conversation history - keep more context to preserve product discovery
       ...conversationHistory.slice(-10)
@@ -143,9 +229,9 @@ Current store categories: t-shirts ($25-45), pants ($50-80), accessories ($20-40
             "Find products in the VibePay store based on user criteria",
           inputSchema: z.object({
             category: z
-              .enum(["tshirts", "pants", "accessories"])
+              .string()
               .optional()
-              .describe("Product category to filter by"),
+              .describe(`Product category to filter by. Available categories: ${getStoreCategories(storeType).join(", ")}`),
             maxPrice: z
               .number()
               .optional()
@@ -160,7 +246,8 @@ Current store categories: t-shirts ($25-45), pants ($50-80), accessories ($20-40
             return await discoverProducts(
               { category, maxPrice, minPrice, searchQuery },
               userId,
-              request
+              request,
+              storeType
             );
           },
         },
@@ -189,7 +276,8 @@ Current store categories: t-shirts ($25-45), pants ($50-80), accessories ($20-40
             return await executePurchase(
               { productId, productName, quantity, confirmPurchase },
               userId,
-              request
+              request,
+              storeType
             );
           },
         },
@@ -218,7 +306,8 @@ Current store categories: t-shirts ($25-45), pants ($50-80), accessories ($20-40
             return await getUserRecommendations(
               { budget, preferences },
               userId,
-              request
+              request,
+              storeType
             );
           },
         },
@@ -239,7 +328,8 @@ Current store categories: t-shirts ($25-45), pants ($50-80), accessories ($20-40
             return await executeBulkPurchase(
               { items, confirmPurchase },
               userId,
-              request
+              request,
+              storeType
             );
           },
         },
@@ -247,7 +337,7 @@ Current store categories: t-shirts ($25-45), pants ($50-80), accessories ($20-40
     });
 
     // Process the AI response and any tool results
-    return processAIResult(result);
+    return processAIResult(result, storeType);
   } catch (error) {
     console.error("Error generating AI response:", error);
     return {
@@ -259,7 +349,7 @@ Current store categories: t-shirts ($25-45), pants ($50-80), accessories ($20-40
   }
 }
 
-function processAIResult(result: any) {
+function processAIResult(result: any, storeType: string = 'clothing') {
   const response: any = {
     message: result.text,
     suggestions: [],
@@ -320,25 +410,18 @@ function processAIResult(result: any) {
   response.suggestions = generateSmartSuggestions(
     response.message || result.text,
     response.products,
-    response.transaction
+    response.transaction,
+    storeType
   );
 
   // If no products were found via tools, but the message mentions products,
   // try to provide some default suggestions
   if (response.products.length === 0 && response.message) {
     const textLower = response.message.toLowerCase();
-    if (
-      textLower.includes("t-shirt") ||
-      textLower.includes("shirt") ||
-      textLower.includes("pants") ||
-      textLower.includes("product")
-    ) {
-      response.suggestions = [
-        "Show me t-shirts",
-        "Find pants under $60",
-        "Check my wallet",
-        "Get recommendations",
-      ];
+    const keywords = getProductKeywords(storeType);
+    
+    if (keywords.some(keyword => textLower.includes(keyword)) || textLower.includes("product")) {
+      response.suggestions = getDefaultSuggestions(storeType);
     }
   }
 
@@ -348,7 +431,8 @@ function processAIResult(result: any) {
 function generateSmartSuggestions(
   messageText: string | undefined,
   products: any[],
-  transaction: any
+  transaction: any,
+  storeType: string = 'clothing'
 ): string[] {
   if (transaction) {
     return [
@@ -376,25 +460,21 @@ function generateSmartSuggestions(
     return ["Show me what I can buy", "Find deals", "Add funds to wallet"];
   }
 
-  return [
-    "Show me t-shirts",
-    "Find pants under $60",
-    "Check my wallet",
-    "Get recommendations",
-  ];
+  return getDefaultSuggestions(storeType);
 }
 
 // Tool implementation functions
 async function discoverProducts(
   params: any,
   userId: string,
-  request: NextRequest
+  request: NextRequest,
+  storeType: string = 'clothing'
 ) {
   try {
     const storeResponse = await fetch(
       `${
         process.env.BETTER_AUTH_URL || "http://localhost:3000"
-      }/api/store/products`,
+      }${getStoreApiEndpoint(storeType)}`,
       {
         headers: {
           Cookie: request.headers.get("cookie") || "",
@@ -462,7 +542,8 @@ async function discoverProducts(
 async function executePurchase(
   params: any,
   userId: string,
-  request: NextRequest
+  request: NextRequest,
+  storeType: string = 'clothing'
 ) {
   try {
     if (!params.confirmPurchase) {
@@ -510,7 +591,7 @@ async function executePurchase(
     const storeResponse = await fetch(
       `${
         process.env.BETTER_AUTH_URL || "http://localhost:3000"
-      }/api/store/products`,
+      }${getStoreApiEndpoint(storeType)}`,
       {
         headers: {
           Cookie: request.headers.get("cookie") || "",
@@ -665,13 +746,14 @@ async function checkUserWallet(userId: string, request: NextRequest) {
 async function getUserRecommendations(
   params: any,
   userId: string,
-  request: NextRequest
+  request: NextRequest,
+  storeType: string = 'clothing'
 ) {
   try {
     const storeResponse = await fetch(
       `${
         process.env.BETTER_AUTH_URL || "http://localhost:3000"
-      }/api/store/products`,
+      }${getStoreApiEndpoint(storeType)}`,
       {
         headers: {
           Cookie: request.headers.get("cookie") || "",
@@ -725,7 +807,8 @@ async function getUserRecommendations(
 async function executeBulkPurchase(
   params: any,
   userId: string,
-  request: NextRequest
+  request: NextRequest,
+  storeType: string = 'clothing'
 ) {
   try {
     if (!params.confirmPurchase) {
@@ -781,7 +864,7 @@ async function executeBulkPurchase(
     const storeResponse = await fetch(
       `${
         process.env.BETTER_AUTH_URL || "http://localhost:3000"
-      }/api/store/products`,
+      }${getStoreApiEndpoint(storeType)}`,
       {
         headers: {
           Cookie: request.headers.get("cookie") || "",

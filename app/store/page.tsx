@@ -399,7 +399,7 @@ export default function StorePage() {
       )}
 
       {/* AI Shopping Assistant */}
-      <AIShoppingAssistant />
+      <AIShoppingAssistant storeType="clothing" />
     </div>
   );
 }

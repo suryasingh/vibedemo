@@ -35,6 +35,7 @@ import {
 import { Suggestions, Suggestion } from "@/components/ai-elements/suggestion";
 import { Actions, Action } from "@/components/ai-elements/actions";
 import { Response } from "@/components/ai-elements/response";
+import { cn } from "@/lib/utils";
 
 interface ChatMessage {
   id: string;
@@ -95,26 +96,43 @@ interface ChatMessage {
   };
 }
 
-const initialMessages: ChatMessage[] = [
-  {
-    id: "1",
-    role: "assistant",
-    content:
-      "Hi! I'm your AI shopping agent. I can discover products, make purchases for you using your wallet, and handle all the shopping details. Just tell me what you want and I'll take care of everything! 🛍️",
-    timestamp: new Date(),
-    suggestions: [
-      "Buy me a nice t-shirt",
-      "Find pants under $50",
-      "Get me workout clothes",
-      "Check my wallet balance",
-    ],
-  },
-];
+// Dynamic initial messages based on store type
+const getInitialMessages = (storeType: 'clothing' | 'fnb'): ChatMessage[] => {
+  const isFood = storeType === 'fnb';
+  
+  return [
+    {
+      id: "1",
+      role: "assistant",
+      content: isFood
+        ? "Hi! I'm your AI food & beverage assistant. I can help you discover delicious meals, drinks, and handle all your food orders using your wallet. Just tell me what you're craving and I'll take care of everything! 🍽️"
+        : "Hi! I'm your AI shopping agent. I can discover products, make purchases for you using your wallet, and handle all the shopping details. Just tell me what you want and I'll take care of everything! 🛍️",
+      timestamp: new Date(),
+      suggestions: isFood
+        ? [
+            "Order me a pizza",
+            "Find healthy beverages",
+            "Get me some dessert",
+            "Check my wallet balance",
+          ]
+        : [
+            "Buy me a nice t-shirt",
+            "Find pants under $50",
+            "Get me workout clothes",
+            "Check my wallet balance",
+          ],
+    },
+  ];
+};
 
-export function AIShoppingAssistant() {
+interface AIShoppingAssistantProps {
+  storeType?: 'clothing' | 'fnb';
+}
+
+export function AIShoppingAssistant({ storeType = 'clothing' }: AIShoppingAssistantProps = {}) {
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
-  const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
+  const [messages, setMessages] = useState<ChatMessage[]>(getInitialMessages(storeType));
   const [isLoading, setIsLoading] = useState(false);
   const [loadingStage, setLoadingStage] = useState<string>("");
   const [loadingProgress, setLoadingProgress] = useState(0);
@@ -218,6 +236,7 @@ export function AIShoppingAssistant() {
           body: JSON.stringify({
             message: message.text,
             conversationHistory: messages.slice(-10), // Send last 10 messages for context
+            storeType: storeType, // Pass store type to AI API
           }),
         });
 
@@ -285,7 +304,7 @@ export function AIShoppingAssistant() {
   );
 
   const getRandomSuggestions = (): string[] => {
-    const allSuggestions = [
+    const clothingSuggestions = [
       "Show me what's new",
       "Find items under $50",
       "I need a complete outfit",
@@ -296,13 +315,26 @@ export function AIShoppingAssistant() {
       "What's trending now?",
     ];
 
+    const fnbSuggestions = [
+      "What's on the menu today?",
+      "Find meals under $25",
+      "I need something healthy",
+      "Show me vegetarian options",
+      "What's popular right now?",
+      "I want something spicy",
+      "Find quick meals",
+      "Show me dessert options",
+    ];
+
+    const allSuggestions = storeType === 'fnb' ? fnbSuggestions : clothingSuggestions;
     return allSuggestions.sort(() => 0.5 - Math.random()).slice(0, 3);
   };
 
   // Fetch real products from the store API
   const fetchStoreProducts = async () => {
     try {
-      const response = await fetch("/api/store/products");
+      const apiEndpoint = storeType === 'fnb' ? "/api/store/fnb" : "/api/store/products";
+      const response = await fetch(apiEndpoint);
       if (response.ok) {
         const data = await response.json();
         return data.products || [];
@@ -417,8 +449,8 @@ export function AIShoppingAssistant() {
                     />
                   ) : (
                     messages.map((message) => (
-                      <Message key={message.id} from={message.role}>
-                        <MessageContent variant="flat">
+                      <Message key={message.id} from={message.role} className={cn("px-4 rounded-lg", message.role === "assistant" && "bg-secondary")}>
+                        <MessageContent variant="flat" className={cn(message.role === "user" && "bg-primary! text-primary-foreground!")}>
                           <div className="space-y-4">
                             {/* Main AI Response with enhanced formatting */}
                             {message.role === "assistant" ? (
