@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -36,6 +36,8 @@ import { Suggestions, Suggestion } from "@/components/ai-elements/suggestion";
 import { Actions, Action } from "@/components/ai-elements/actions";
 import { Response } from "@/components/ai-elements/response";
 import { cn } from "@/lib/utils";
+import { LoginForm } from "@/components/auth/login-form";
+import { authClient } from "@/lib/auth-client";
 
 interface ChatMessage {
   id: string;
@@ -94,12 +96,35 @@ interface ChatMessage {
     };
     canPurchase?: boolean;
   };
+  cartAction?: {
+    success: boolean;
+    action?: string;
+    product?: string;
+    quantity?: number;
+    cartTotal?: number;
+    error?: string;
+  };
+  cartContents?: {
+    success: boolean;
+    isEmpty: boolean;
+    items: Array<{
+      id: string;
+      productId: string;
+      name: string;
+      price: number;
+      quantity: number;
+      total: number;
+      addedAt: Date;
+    }>;
+    totalItems: number;
+    totalCost: number;
+  };
 }
 
 // Dynamic initial messages based on store type
-const getInitialMessages = (storeType: 'clothing' | 'fnb'): ChatMessage[] => {
-  const isFood = storeType === 'fnb';
-  
+const getInitialMessages = (storeType: "clothing" | "fnb"): ChatMessage[] => {
+  const isFood = storeType === "fnb";
+
   return [
     {
       id: "1",
@@ -108,35 +133,97 @@ const getInitialMessages = (storeType: 'clothing' | 'fnb'): ChatMessage[] => {
         ? "Hi! I'm your AI food & beverage assistant. I can help you discover delicious meals, drinks, and handle all your food orders using your wallet. Just tell me what you're craving and I'll take care of everything! 🍽️"
         : "Hi! I'm your AI shopping agent. I can discover products, make purchases for you using your wallet, and handle all the shopping details. Just tell me what you want and I'll take care of everything! 🛍️",
       timestamp: new Date(),
-      suggestions: isFood
-        ? [
-            "Order me a pizza",
-            "Find healthy beverages",
-            "Get me some dessert",
-            "Check my wallet balance",
-          ]
-        : [
-            "Buy me a nice t-shirt",
-            "Find pants under $50",
-            "Get me workout clothes",
-            "Check my wallet balance",
-          ],
+        suggestions: isFood
+          ? [
+              "Add pizza to cart",
+              "Find healthy beverages",
+              "View my cart",
+              "Check my wallet balance",
+            ]
+          : [
+              "Add t-shirt to cart",
+              "Find pants under $50",
+              "View my cart",
+              "Check my wallet balance",
+            ],
     },
   ];
 };
 
 interface AIShoppingAssistantProps {
-  storeType?: 'clothing' | 'fnb';
+  storeType?: "clothing" | "fnb";
 }
 
-export function AIShoppingAssistant({ storeType = 'clothing' }: AIShoppingAssistantProps = {}) {
+export function AIShoppingAssistant({
+  storeType = "clothing",
+}: AIShoppingAssistantProps = {}) {
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
-  const [messages, setMessages] = useState<ChatMessage[]>(getInitialMessages(storeType));
+  const [messages, setMessages] = useState<ChatMessage[]>(
+    getInitialMessages(storeType)
+  );
   const [isLoading, setIsLoading] = useState(false);
   const [loadingStage, setLoadingStage] = useState<string>("");
   const [loadingProgress, setLoadingProgress] = useState(0);
   const [inputValue, setInputValue] = useState("");
+  const [showLogin, setShowLogin] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+
+  // Check authentication status when component mounts or opens
+  useEffect(() => {
+    if (isOpen && isAuthenticated === null) {
+      checkAuthenticationStatus();
+    }
+  }, [isOpen]);
+
+  const checkAuthenticationStatus = async () => {
+    try {
+      // Use Better Auth client to get session
+      const session = await authClient.getSession();
+
+      if (session.data?.user) {
+        setIsAuthenticated(true);
+        setShowLogin(false);
+      } else {
+        setIsAuthenticated(false);
+        setShowLogin(true);
+      }
+    } catch (error) {
+      console.log("Auth check failed:", error);
+      setIsAuthenticated(false);
+      setShowLogin(true);
+    }
+  };
+
+  const handleLoginSuccess = () => {
+    setIsAuthenticated(true);
+    setShowLogin(false);
+    // Reset messages to initial state after login
+    setMessages(getInitialMessages(storeType));
+  };
+
+  // Listen for successful authentication using Better Auth session changes
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+
+    if (showLogin) {
+      // Poll for session changes when login form is shown
+      interval = setInterval(async () => {
+        const session = await authClient.getSession();
+        if (session.data?.user) {
+          setIsAuthenticated(true);
+          setShowLogin(false);
+          setMessages(getInitialMessages(storeType));
+        }
+      }, 1000); // Check every second
+    }
+
+    return () => {
+      if (interval) {
+        clearInterval(interval);
+      }
+    };
+  }, [showLogin, storeType]);
 
   // Function to simulate loading stages based on user request
   const simulateLoadingStages = useCallback((userMessage: string) => {
@@ -241,6 +328,16 @@ export function AIShoppingAssistant({ storeType = 'clothing' }: AIShoppingAssist
         });
 
         if (!response.ok) {
+          if (response.status === 401) {
+            // User is not authenticated, show login form
+            setIsAuthenticated(false);
+            setShowLogin(true);
+            clearInterval(stageInterval);
+            setIsLoading(false);
+            setLoadingStage("");
+            setLoadingProgress(0);
+            return;
+          }
           throw new Error("Failed to get AI response");
         }
 
@@ -266,6 +363,8 @@ export function AIShoppingAssistant({ storeType = 'clothing' }: AIShoppingAssist
           items: aiData.items, // Include purchased items for bulk transactions
           summary: aiData.summary, // Include purchase summary
           walletInfo: aiData.walletInfo, // Include wallet info if wallet was checked
+          cartAction: aiData.cartAction, // Include cart action results
+          cartContents: aiData.cartContents, // Include cart contents if viewed
         };
 
         console.log("Frontend aiResponse created:", {
@@ -306,10 +405,13 @@ export function AIShoppingAssistant({ storeType = 'clothing' }: AIShoppingAssist
   const getRandomSuggestions = (): string[] => {
     const clothingSuggestions = [
       "Show me what's new",
+      "Add items to cart",
       "Find items under $50",
+      "View my cart",
       "I need a complete outfit",
       "What sizes do you have?",
       "Show me customer favorites",
+      "Checkout my cart",
       "Find eco-friendly options",
       "I need gift ideas",
       "What's trending now?",
@@ -317,23 +419,28 @@ export function AIShoppingAssistant({ storeType = 'clothing' }: AIShoppingAssist
 
     const fnbSuggestions = [
       "What's on the menu today?",
+      "Add food to cart",
       "Find meals under $25",
+      "View my cart", 
       "I need something healthy",
       "Show me vegetarian options",
       "What's popular right now?",
+      "Checkout my cart",
       "I want something spicy",
       "Find quick meals",
       "Show me dessert options",
     ];
 
-    const allSuggestions = storeType === 'fnb' ? fnbSuggestions : clothingSuggestions;
+    const allSuggestions =
+      storeType === "fnb" ? fnbSuggestions : clothingSuggestions;
     return allSuggestions.sort(() => 0.5 - Math.random()).slice(0, 3);
   };
 
   // Fetch real products from the store API
   const fetchStoreProducts = async () => {
     try {
-      const apiEndpoint = storeType === 'fnb' ? "/api/store/fnb" : "/api/store/products";
+      const apiEndpoint =
+        storeType === "fnb" ? "/api/store/fnb" : "/api/store/products";
       const response = await fetch(apiEndpoint);
       if (response.ok) {
         const data = await response.json();
@@ -413,7 +520,7 @@ export function AIShoppingAssistant({ storeType = 'clothing' }: AIShoppingAssist
 
       {/* Chat Window */}
       {isOpen && (
-        <Card className="fixed bottom-6 right-6 w-108 max-h-[700px] h-full shadow z-50 overflow-hidden transition-all duration-300 py-0 gap-0">
+        <Card className="fixed bottom-6 right-6 w-108 max-h-[700px] h-full shadow z-50 overflow-hidden transition-all duration-300 py-0 gap-0 bg-background/80 backdrop-blur-xl">
           {/* Header */}
           <CardHeader className="border-b p-4! pb-0 mb-0 gap-0">
             <div className="flex items-center justify-between">
@@ -439,322 +546,470 @@ export function AIShoppingAssistant({ storeType = 'clothing' }: AIShoppingAssist
 
           <>
             <div className="flex-1 flex flex-col overflow-hidden">
-              <Conversation className="flex-1">
-                <ConversationContent className="space-y-4">
-                  {messages.length === 0 ? (
-                    <ConversationEmptyState
-                      title="Start shopping with AI"
-                      description="Ask me anything about our products!"
-                      icon={<IconSparkles className="h-8 w-8" />}
-                    />
-                  ) : (
-                    messages.map((message) => (
-                      <Message key={message.id} from={message.role} className={cn("px-4 rounded-lg", message.role === "assistant" && "bg-secondary")}>
-                        <MessageContent variant="flat" className={cn(message.role === "user" && "bg-primary! text-primary-foreground!")}>
-                          <div className="space-y-4">
-                            {/* Main AI Response with enhanced formatting */}
-                            {message.role === "assistant" ? (
-                              renderAIMessage(message)
-                            ) : (
-                              <p className="text-sm leading-relaxed">
-                                {message.content}
-                              </p>
+              {/* Show login form if not authenticated */}
+              {showLogin ? (
+                <div className="flex-1 flex items-center justify-center p-6">
+                  <div className="w-full max-w-md">
+                    <div className="text-center mb-6">
+                      <IconRobot className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+                      <h3 className="text-lg font-semibold mb-2">
+                        Sign in to continue
+                      </h3>
+                      <p className="text-sm text-muted-foreground">
+                        Please sign in to use the AI Shopping Assistant
+                      </p>
+                    </div>
+                    <LoginForm />
+                  </div>
+                </div>
+              ) : (
+                <Conversation className="flex-1">
+                  <ConversationContent className="space-y-4">
+                    {messages.length === 0 ? (
+                      <ConversationEmptyState
+                        title="Start shopping with AI"
+                        description="Ask me anything about our products!"
+                        icon={<IconSparkles className="h-8 w-8" />}
+                      />
+                    ) : (
+                      messages.map((message) => (
+                        <Message
+                          key={message.id}
+                          from={message.role}
+                          className={cn(
+                            "px-4 rounded-lg",
+                            message.role === "assistant" && "bg-secondary/80 border border-border shadow-sm"
+                          )}
+                        >
+                          <MessageContent
+                            variant="flat"
+                            className={cn(
+                              message.role === "user" &&
+                                "bg-primary/80! text-primary-foreground! border border-border shadow-sm"
                             )}
+                          >
+                            <div className="space-y-4">
+                              {/* Main AI Response with enhanced formatting */}
+                              {message.role === "assistant" ? (
+                                renderAIMessage(message)
+                              ) : (
+                                <p className="text-sm leading-relaxed">
+                                  {message.content}
+                                </p>
+                              )}
 
-                            {/* Wallet Information */}
-                            {message.walletInfo &&
-                              message.walletInfo.success &&
-                              message.walletInfo.wallet && (
-                                <Card className="p-4 gap-4">
-                                  <CardHeader className="p-0!">
+                              {/* Wallet Information */}
+                              {message.walletInfo &&
+                                message.walletInfo.success &&
+                                message.walletInfo.wallet && (
+                                  <Card className="p-4 gap-4">
+                                    <CardHeader className="p-0!">
+                                      <CardTitle className="text-sm font-medium flex items-center gap-2">
+                                        💳 Wallet Information
+                                      </CardTitle>
+                                    </CardHeader>
+                                    <CardContent className="p-0!">
+                                      <div className="grid grid-cols-2 gap-3 text-xs">
+                                        <div>
+                                          <span className="font-bold">
+                                            Name:
+                                          </span>
+                                          <p>
+                                            {message.walletInfo.wallet.name}
+                                          </p>
+                                        </div>
+                                        <div>
+                                          <span className="font-bold">
+                                            Balance:
+                                          </span>
+                                          <p>
+                                            $
+                                            {message.walletInfo.wallet.balance.toFixed(
+                                              2
+                                            )}{" "}
+                                            {message.walletInfo.wallet.currency}
+                                          </p>
+                                        </div>
+                                        <div>
+                                          <span className="font-bold">
+                                            Payment ID:
+                                          </span>
+                                          <p className="text-xs font-mono">
+                                            {
+                                              message.walletInfo.wallet
+                                                .paymentId
+                                            }
+                                          </p>
+                                        </div>
+                                      </div>
+                                    </CardContent>
+                                  </Card>
+                                )}
+
+                              {/* Transaction Confirmation */}
+                              {message.transaction && (
+                                <Card className="p-4">
+                                  <CardHeader className="p-0 pb-3">
                                     <CardTitle className="text-sm font-medium flex items-center gap-2">
-                                      💳 Wallet Information
+                                      ✅ Purchase Completed
                                     </CardTitle>
                                   </CardHeader>
-                                  <CardContent className="p-0!">
-                                    <div className="grid grid-cols-2 gap-3 text-xs">
-                                      <div>
-                                        <span className="font-bold">
-                                          Name:
-                                        </span>
-                                        <p>{message.walletInfo.wallet.name}</p>
-                                      </div>
-                                      <div>
-                                        <span className="font-bold">
-                                          Balance:
-                                        </span>
-                                        <p>
-                                          $
-                                          {message.walletInfo.wallet.balance.toFixed(
-                                            2
-                                          )}{" "}
-                                          {message.walletInfo.wallet.currency}
-                                        </p>
-                                      </div>
-                                      <div>
-                                        <span className="font-bold">
-                                          Payment ID:
-                                        </span>
-                                        <p className="text-xs font-mono">
-                                          {message.walletInfo.wallet.paymentId}
-                                        </p>
-                                      </div>
-                                      <div>
-                                        <span className="font-bold mr-1">
-                                          Status:
-                                        </span>
-                                        <Badge
-                                          variant={
-                                            message.walletInfo.canPurchase
-                                              ? "default"
-                                              : "secondary"
-                                          }
-                                          className="mt-1 text-xs"
-                                        >
-                                          {message.walletInfo.canPurchase
-                                            ? "Ready to shop"
-                                            : "Needs funding"}
-                                        </Badge>
-                                      </div>
+                                  <CardContent className="p-0 space-y-3">
+                                    <div className="flex justify-between items-center">
+                                      <span className="text-sm font-medium">
+                                        {message.transaction.product}
+                                      </span>
+                                      <span>${message.transaction.amount}</span>
+                                    </div>
+                                    <div className="flex justify-between items-center">
+                                      <span className="text-sm font-medium">
+                                        {" "}
+                                        Transaction ID:{" "}
+                                      </span>
+
+                                      <code className="text-xs px-2 py-1 rounded font-mono text-muted-foreground bg-secondary">
+                                        {message.transaction.id}
+                                      </code>
                                     </div>
                                   </CardContent>
                                 </Card>
                               )}
 
-                            {/* Transaction Confirmation */}
-                            {message.transaction && (
-                              <Card className="p-4 bg-green-50 border-green-200">
-                                <CardHeader className="p-0 pb-3">
-                                  <CardTitle className="text-sm font-medium text-green-800 flex items-center gap-2">
-                                    ✅ Purchase Completed
-                                  </CardTitle>
-                                </CardHeader>
-                                <CardContent className="p-0 space-y-3">
-                                  <div className="flex justify-between items-center">
-                                    <span className="text-sm font-medium text-green-700">
-                                      {message.transaction.product}
-                                    </span>
-                                    <Badge
-                                      variant="outline"
-                                      className="text-xs bg-green-100 text-green-700 border-green-300"
-                                    >
-                                      ${message.transaction.amount}
-                                    </Badge>
-                                  </div>
-                                  <div className="text-xs text-green-600">
-                                    Transaction ID:{" "}
-                                    <code className="bg-green-100 px-2 py-1 rounded font-mono">
-                                      {message.transaction.id}
-                                    </code>
-                                  </div>
-                                  {/* <div className="text-xs">
-                                    Status:{" "}
-                                    <Badge
-                                      variant="default"
-                                      className="text-xs bg-green-500"
-                                    >
-                                      {message.transaction.status}
-                                    </Badge>
-                                  </div> */}
-                                </CardContent>
-                              </Card>
-                            )}
-
-                            {/* Bulk Transaction */}
-                            {message.bulkTransaction && (
-                              <Card className="p-4 bg-green-50 border-green-200">
-                                <CardHeader className="p-0 pb-3">
-                                  <CardTitle className="text-sm font-medium text-green-800 flex items-center gap-2">
-                                    🛒 Bulk Purchase Completed
-                                  </CardTitle>
-                                </CardHeader>
-                                <CardContent className="p-0 space-y-3">
-                                  <div className="flex justify-between items-center">
-                                    <span className="text-sm font-medium text-green-700">
-                                      {message.bulkTransaction.totalItems} items
-                                      purchased
-                                    </span>
-                                    <Badge
-                                      variant="outline"
-                                      className="text-xs bg-green-100 text-green-700 border-green-300"
-                                    >
-                                      Total: $
-                                      {message.bulkTransaction.totalAmount.toFixed(
-                                        2
-                                      )}
-                                    </Badge>
-                                  </div>
-
-                                  {message.items && (
-                                    <div className="space-y-2 bg-white rounded-lg p-3 border border-green-200">
-                                      {message.items.map((item, index) => (
-                                        <div
-                                          key={index}
-                                          className="flex justify-between text-xs"
-                                        >
-                                          <span className="text-gray-700">
-                                            {item.product} x{item.quantity}
-                                          </span>
-                                          <span className="font-medium text-green-600">
-                                            ${item.total.toFixed(2)}
-                                          </span>
-                                        </div>
-                                      ))}
-                                    </div>
-                                  )}
-                                </CardContent>
-                              </Card>
-                            )}
-
-                            {/* Product Recommendations */}
-                            {message.products &&
-                              message.products.length > 0 && (
-                                <div className="">
-                                  <div className="pb-3">
-                                    <h3 className="text-sm">
-                                      🛍️ Product Recommendations
-                                    </h3>
-                                  </div>
-                                  <div className="grid gap-3">
-                                    {message.products.map((product) => (
-                                      <div
-                                        key={product.id}
-                                        className="p-3 border rounded-lg bg-card hover:shadow-md transition-shadow"
+                              {/* Bulk Transaction */}
+                              {message.bulkTransaction && (
+                                <Card className="p-4 gap-2">
+                                  <CardHeader className="p-0 pb-3">
+                                    <CardTitle className="text-sm font-medium flex items-center gap-2">
+                                      🛒 Bulk Purchase Completed
+                                    </CardTitle>
+                                  </CardHeader>
+                                  <CardContent className="p-0 space-y-3">
+                                    <div className="flex justify-between items-center">
+                                      <span className="text-sm font-medium">
+                                        {message.bulkTransaction.totalItems}{" "}
+                                        items purchased
+                                      </span>
+                                      <Badge
+                                        variant="outline"
+                                        className="text-xs"
                                       >
-                                        <div className="flex items-center gap-3">
-                                          <img
-                                            src={product.image}
-                                            alt={product.name}
-                                            className="w-14 h-14 rounded-lg object-cover border"
-                                          />
-                                          <div className="flex-1 min-w-0">
-                                            <h4 className="text-sm font-semibold truncate">
-                                              {product.name}
-                                            </h4>
-                                            <p className="text-xs mt-1 text-muted-foreground">
-                                              <span className="font-medium">
-                                                ${product.price}
-                                              </span>{" "}
-                                              •{" "}
-                                              <span className="capitalize">
-                                                {product.category}
-                                              </span>
-                                            </p>
+                                        Total: $
+                                        {message.bulkTransaction.totalAmount.toFixed(
+                                          2
+                                        )}
+                                      </Badge>
+                                    </div>
+
+                                    {message.items && (
+                                      <div className="space-y-2 rounded-lg p-3 border">
+                                        {message.items.map((item, index) => (
+                                          <div
+                                            key={index}
+                                            className="flex justify-between text-xs"
+                                          >
+                                            <span className="text-muted-foreground">
+                                              {item.product} x{item.quantity}
+                                            </span>
+                                            <span className="font-medium">
+                                              ${item.total.toFixed(2)}
+                                            </span>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    )}
+                                  </CardContent>
+                                </Card>
+                              )}
+
+                              {/* Cart Action Confirmation */}
+                              {message.cartAction && (
+                                <Card className="p-4">
+                                  <CardHeader className="p-0 pb-3">
+                                    <CardTitle className="text-sm font-medium flex items-center gap-2">
+                                      🛒 Cart Update
+                                    </CardTitle>
+                                  </CardHeader>
+                                  <CardContent className="p-0">
+                                    {message.cartAction.success ? (
+                                      <div className="space-y-2">
+                                        <p className="text-sm">
+                                          {message.cartAction.action === "added" && 
+                                            `Added ${message.cartAction.product} to cart`}
+                                          {message.cartAction.action === "updated" && 
+                                            `Updated ${message.cartAction.product} quantity to ${message.cartAction.quantity}`}
+                                          {message.cartAction.action === "removed" && 
+                                            `Removed ${message.cartAction.product} from cart`}
+                                          {message.cartAction.action === "reduced" && 
+                                            `Reduced ${message.cartAction.product} quantity to ${message.cartAction.quantity}`}
+                                        </p>
+                                        {message.cartAction.cartTotal !== undefined && (
+                                          <p className="text-xs text-muted-foreground">
+                                            Cart total: ${message.cartAction.cartTotal.toFixed(2)}
+                                          </p>
+                                        )}
+                                      </div>
+                                    ) : (
+                                      <p className="text-sm text-red-600">
+                                        {message.cartAction.error || "Cart action failed"}
+                                      </p>
+                                    )}
+                                  </CardContent>
+                                </Card>
+                              )}
+
+                              {/* Cart Contents Display */}
+                              {message.cartContents && (
+                                <Card className="p-4">
+                                  <CardHeader className="p-0 pb-3">
+                                    <CardTitle className="text-sm font-medium flex items-center gap-2">
+                                      🛒 Shopping Cart
+                                    </CardTitle>
+                                  </CardHeader>
+                                  <CardContent className="p-0">
+                                    {message.cartContents.isEmpty ? (
+                                      <p className="text-sm text-muted-foreground">
+                                        Your cart is empty
+                                      </p>
+                                    ) : (
+                                      <div className="space-y-3">
+                                        <div className="space-y-2">
+                                          {message.cartContents.items.map((item) => (
+                                            <div
+                                              key={item.id}
+                                              className="flex justify-between items-center p-2 border rounded-lg"
+                                            >
+                                              <div className="flex-1">
+                                                <p className="text-sm font-medium">
+                                                  {item.name}
+                                                </p>
+                                                <p className="text-xs text-muted-foreground">
+                                                  ${item.price} × {item.quantity} = ${item.total.toFixed(2)}
+                                                </p>
+                                              </div>
+                                              <div className="flex gap-1">
+                                                <Button
+                                                  size="sm"
+                                                  variant="outline"
+                                                  className="h-6 w-6 p-0"
+                                                  onClick={() =>
+                                                    handleSubmit({
+                                                      text: `Remove ${item.name} from cart`,
+                                                    })
+                                                  }
+                                                >
+                                                  -
+                                                </Button>
+                                                <Button
+                                                  size="sm"
+                                                  variant="outline"
+                                                  className="h-6 w-6 p-0"
+                                                  onClick={() =>
+                                                    handleSubmit({
+                                                      text: `Add ${item.name} to cart`,
+                                                    })
+                                                  }
+                                                >
+                                                  +
+                                                </Button>
+                                              </div>
+                                            </div>
+                                          ))}
+                                        </div>
+                                        <div className="border-t pt-3">
+                                          <div className="flex justify-between items-center mb-3">
+                                            <span className="font-medium">
+                                              Total ({message.cartContents.totalItems} items):
+                                            </span>
+                                            <span className="font-bold">
+                                              ${message.cartContents.totalCost.toFixed(2)}
+                                            </span>
                                           </div>
                                           <Button
                                             size="sm"
-                                            className="h-8 px-3"
+                                            className="w-full"
                                             onClick={() =>
                                               handleSubmit({
-                                                text: `Buy ${product.name} for me`,
+                                                text: "Checkout my cart",
                                               })
                                             }
                                           >
-                                            <IconShoppingBag className="h-3 w-3 mr-1" />
-                                            Buy
+                                            Checkout Cart
                                           </Button>
                                         </div>
                                       </div>
-                                    ))}
-                                  </div>
-                                </div>
+                                    )}
+                                  </CardContent>
+                                </Card>
                               )}
 
-                            {/* Quick Suggestions */}
-                            {message.suggestions &&
-                              message.role === "assistant" && (
-                                <Suggestions>
-                                  {message.suggestions.map(
-                                    (suggestion, index) => (
-                                      <Suggestion
-                                        key={index}
-                                        suggestion={suggestion}
-                                        onClick={handleSuggestionClick}
-                                        className="text-xs"
-                                      />
-                                    )
-                                  )}
-                                </Suggestions>
-                              )}
+                              {/* Product Recommendations */}
+                              {message.products &&
+                                message.products.length > 0 && (
+                                  <div className="">
+                                    <div className="pb-3">
+                                      <h3 className="text-sm">
+                                        🛍️ Product Recommendations
+                                      </h3>
+                                    </div>
+                                    <div className="grid gap-3">
+                                      {message.products.map((product) => (
+                                        <div
+                                          key={product.id}
+                                          className="p-3 border rounded-lg bg-card hover:shadow-md transition-shadow"
+                                        >
+                                          <div className="flex items-center gap-3">
+                                            <img
+                                              src={product.image}
+                                              alt={product.name}
+                                              className="w-14 h-14 rounded-lg object-cover border"
+                                            />
+                                            <div className="flex-1 min-w-0">
+                                              <h4 className="text-sm font-semibold truncate">
+                                                {product.name}
+                                              </h4>
+                                              <p className="text-xs mt-1 text-muted-foreground">
+                                                <span className="font-medium">
+                                                  ${product.price}
+                                                </span>{" "}
+                                                •{" "}
+                                                <span className="capitalize">
+                                                  {product.category}
+                                                </span>
+                                              </p>
+                                            </div>
+                                            <div className="flex gap-1">
+                                              <Button
+                                                size="sm"
+                                                variant="outline"
+                                                className="h-8 px-2"
+                                                onClick={() =>
+                                                  handleSubmit({
+                                                    text: `Add ${product.name} to cart`,
+                                                  })
+                                                }
+                                              >
+                                                +
+                                              </Button>
+                                              <Button
+                                                size="sm"
+                                                className="h-8 px-3"
+                                                onClick={() =>
+                                                  handleSubmit({
+                                                    text: `Buy ${product.name} for me`,
+                                                  })
+                                                }
+                                              >
+                                                <IconShoppingBag className="h-3 w-3 mr-1" />
+                                                Buy
+                                              </Button>
+                                            </div>
+                                          </div>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+
+                              {/* Quick Suggestions */}
+                              {message.suggestions &&
+                                message.role === "assistant" && (
+                                  <Suggestions>
+                                    {message.suggestions.map(
+                                      (suggestion, index) => (
+                                        <Suggestion
+                                          key={index}
+                                          suggestion={suggestion}
+                                          onClick={handleSuggestionClick}
+                                          className="text-xs"
+                                        />
+                                      )
+                                    )}
+                                  </Suggestions>
+                                )}
+                            </div>
+                          </MessageContent>
+                        </Message>
+                      ))
+                    )}
+
+                    {isLoading && (
+                      <Message from="assistant">
+                        <MessageContent variant="flat">
+                          <div className="space-y-3">
+                            {/* Current Stage */}
+                            <div className="flex items-center gap-2 text-sm">
+                              <div className="flex space-x-1">
+                                <div className="w-2 h-2 bg-primary rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+                                <div className="w-2 h-2 bg-primary rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+                                <div className="w-2 h-2 bg-primary rounded-full animate-bounce"></div>
+                              </div>
+                              <span className="font-medium">
+                                {loadingStage || "🤖 Starting..."}
+                              </span>
+                            </div>
+
+                            {/* Progress Bar */}
+                            {loadingProgress > 0 && (
+                              <div className="w-full bg-gray-200 rounded-full h-1.5">
+                                <div
+                                  className="bg-primary h-1.5 rounded-full transition-all duration-300 ease-out"
+                                  style={{
+                                    width: `${Math.min(
+                                      (loadingProgress /
+                                        simulateLoadingStages(
+                                          messages[messages.length - 1]
+                                            ?.content || ""
+                                        ).length) *
+                                        100,
+                                      100
+                                    )}%`,
+                                  }}
+                                ></div>
+                              </div>
+                            )}
+
+                            {/* Helper Text */}
+                            <p className="text-xs text-muted-foreground">
+                              AI agent is working on your request...
+                            </p>
                           </div>
                         </MessageContent>
                       </Message>
-                    ))
-                  )}
-
-
-                  {isLoading && (
-                    <Message from="assistant">
-                      <MessageContent variant="flat">
-                        <div className="space-y-3">
-                          {/* Current Stage */}
-                          <div className="flex items-center gap-2 text-sm">
-                            <div className="flex space-x-1">
-                              <div className="w-2 h-2 bg-primary rounded-full animate-bounce [animation-delay:-0.3s]"></div>
-                              <div className="w-2 h-2 bg-primary rounded-full animate-bounce [animation-delay:-0.15s]"></div>
-                              <div className="w-2 h-2 bg-primary rounded-full animate-bounce"></div>
-                            </div>
-                            <span className="font-medium">
-                              {loadingStage || "🤖 Starting..."}
-                            </span>
-                          </div>
-
-                          {/* Progress Bar */}
-                          {loadingProgress > 0 && (
-                            <div className="w-full bg-gray-200 rounded-full h-1.5">
-                              <div
-                                className="bg-primary h-1.5 rounded-full transition-all duration-300 ease-out"
-                                style={{
-                                  width: `${Math.min(
-                                    (loadingProgress /
-                                      simulateLoadingStages(
-                                        messages[messages.length - 1]
-                                          ?.content || ""
-                                      ).length) *
-                                      100,
-                                    100
-                                  )}%`,
-                                }}
-                              ></div>
-                            </div>
-                          )}
-
-                          {/* Helper Text */}
-                          <p className="text-xs text-muted-foreground">
-                            AI agent is working on your request...
-                          </p>
-                        </div>
-                      </MessageContent>
-                    </Message>
-                  )}
-                </ConversationContent>
-              </Conversation>
+                    )}
+                  </ConversationContent>
+                </Conversation>
+              )}
             </div>
 
-            {/* Input Area */}
-            <div className="flex-shrink-0 p-4">
-              <PromptInput onSubmit={handleSubmit} className="bg-background/40">
-                <PromptInputBody>
-                  <PromptInputTextarea
-                    placeholder="Ask me to find something..."
-                    disabled={isLoading}
-                    value={inputValue}
-                    onChange={(e) => setInputValue(e.target.value)}
-                  />
-                  <PromptInputToolbar className="px-3 py-2">
-                    <PromptInputTools>
-                      <p className="text-xs text-muted-foreground">
-                        Powered by Vypr
-                      </p>
-                    </PromptInputTools>
-                    <PromptInputSubmit
-                      status={isLoading ? "submitted" : undefined}
+            {/* Input Area - only show when authenticated */}
+            {isAuthenticated && (
+              <div className="flex-shrink-0 p-4">
+                <PromptInput
+                  onSubmit={handleSubmit}
+                  className="bg-background/40"
+                >
+                  <PromptInputBody>
+                    <PromptInputTextarea
+                      placeholder="Ask me to find something..."
                       disabled={isLoading}
+                      value={inputValue}
+                      onChange={(e) => setInputValue(e.target.value)}
                     />
-                  </PromptInputToolbar>
-                </PromptInputBody>
-              </PromptInput>
-            </div>
+                    <PromptInputToolbar className="px-3 py-2">
+                      <PromptInputTools>
+                        <p className="text-xs text-muted-foreground">
+                          Powered by Vypr
+                        </p>
+                      </PromptInputTools>
+                      <PromptInputSubmit
+                        status={isLoading ? "submitted" : undefined}
+                        disabled={isLoading}
+                      />
+                    </PromptInputToolbar>
+                  </PromptInputBody>
+                </PromptInput>
+              </div>
+            )}
           </>
         </Card>
       )}

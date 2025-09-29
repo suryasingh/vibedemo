@@ -38,19 +38,20 @@ model session {
 }
 
 model user {
-  id              String    @id
+  id              String         @id
   name            String
-  email           String    @unique
+  email           String         @unique
   emailVerified   Boolean
   image           String?
-  defaultWalletId String?   @unique // Reference to default wallet
+  defaultWalletId String?        @unique // Reference to default wallet
   createdAt       DateTime
   updatedAt       DateTime
   account         account[]
   session         session[]
   wallets         wallet[]
   apiKeys         apiKey[]
-  defaultWallet   wallet?   @relation("DefaultWallet", fields: [defaultWalletId], references: [id])
+  shoppingCarts   shoppingCart[]
+  defaultWallet   wallet?        @relation("DefaultWallet", fields: [defaultWalletId], references: [id])
 }
 
 model wallet {
@@ -199,4 +200,31 @@ model OauthCode {
 
   @@unique([code])
   @@map("oauthCode")
+}
+
+model shoppingCart {
+  id        String     @id @default(cuid())
+  userId    String
+  sessionId String?    // Optional session ID for guest users
+  isActive  Boolean    @default(true)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  user      user       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items     cartItem[]
+
+  @@unique([userId, isActive]) // Only one active cart per user
+}
+
+model cartItem {
+  id           String       @id @default(cuid())
+  cartId       String
+  productId    String       // Reference to the product from store
+  productName  String       // Store product name for reference
+  productPrice Decimal      // Store price at time of adding to cart
+  quantity     Int          @default(1)
+  storeType    String       @default("clothing") // "clothing" or "fnb"
+  addedAt      DateTime     @default(now())
+  cart         shoppingCart @relation(fields: [cartId], references: [id], onDelete: Cascade)
+
+  @@unique([cartId, productId]) // Prevent duplicate products in same cart
 }
