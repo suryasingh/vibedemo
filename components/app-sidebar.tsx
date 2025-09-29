@@ -1,26 +1,14 @@
 "use client";
 
 import {
-  IconCamera,
-  IconCopy,
-  IconDashboard,
-  IconDatabase,
-  IconFileAi,
-  IconFileDescription,
-  IconFileWord,
-  IconHome,
-  IconInnerShadowTop,
-  IconReport,
-  IconSettings,
-  IconUserCircle,
-  IconWallet,
-  IconRobot,
-  IconShield,
-  IconNetwork,
   IconCoin,
-  IconTransfer,
+  IconDashboard,
   IconKey,
+  IconNetwork,
+  IconSettings,
   IconShoppingCart,
+  IconTransfer,
+  IconWallet,
 } from "@tabler/icons-react";
 import * as React from "react";
 
