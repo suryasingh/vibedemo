@@ -340,9 +340,8 @@ export default function StorePage() {
               <div className="w-20 h-20 mx-auto mb-8 bg-gradient-to-r from-primary/20 to-primary/5 rounded-full flex items-center justify-center">
                 <IconLoader2 className="h-10 w-10 text-primary animate-spin" />
               </div>
-              <div className="absolute top-4 left-1/2 transform -translate-x-1/2 w-16 h-16 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
             </div>
-            <h3 className="text-2xl font-bold mb-3 bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
+            <h3 className="text-2xl font-bold mb-3">
               Loading Premium Collection
             </h3>
             <p className="text-lg text-muted-foreground leading-relaxed">
@@ -364,15 +363,17 @@ export default function StorePage() {
             {/* Logo */}
             <div className="flex items-center space-x-2">
               <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-                <span className="text-primary-foreground font-bold text-sm">V</span>
+                <span className="text-primary-foreground font-bold text-sm">
+                  B
+                </span>
               </div>
-              <span className="font-bold text-xl text-foreground">VibePay Store</span>
+              <span className="font-bold text-xl text-foreground">
+                Bloom & Co.
+              </span>
             </div>
 
             {/* Navigation Links */}
-            <div className="hidden md:flex items-center space-x-8">
-             
-            </div>
+            <div className="hidden md:flex items-center space-x-8"></div>
 
             {/* Right Side Actions */}
             <div className="flex items-center space-x-4">
@@ -392,45 +393,45 @@ export default function StorePage() {
 
       <div className="container mx-auto px-4 py-8">
         {/* Hero Carousel */}
-      <div className="mb-12 relative">
-        <Carousel
-          className="w-full"
-          setApi={setCarouselApi}
-          opts={{
-            align: "start",
-            loop: true,
-          }}
-        >
-          <CarouselContent>
-            <CarouselItem>
-              <div className="relative h-[400px] md:h-[500px] lg:h-[600px] rounded-2xl overflow-hidden shadow-2xl">
-                <img
-                  src="https://images.unsplash.com/photo-1512436991641-6745cdb1723f?q=80&w=2400&auto=format&fit=crop"
-                  alt="New Season Arrivals"
-                  className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 hover:scale-105"
-                />
-                <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/30 to-transparent" />
-                <div className="relative z-10 h-full flex flex-col justify-center p-8 md:p-12 lg:p-16 text-white max-w-3xl">
-                  <div className="space-y-6">
-                    <div className="inline-block">
-                      <Badge
-                        variant="secondary"
-                        className="text-xs uppercase tracking-wider bg-white/20 text-white border-white/30 backdrop-blur-sm"
-                      >
-                        New Collection
-                      </Badge>
-                    </div>
-                    <h2 className="text-4xl md:text-6xl lg:text-7xl font-bold leading-tight tracking-tight">
-                      New Season
-                      <span className="block text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-300">
-                        Arrivals
-                      </span>
-                    </h2>
-                    <p className="text-lg md:text-xl text-white/90 max-w-2xl leading-relaxed">
-                      Refresh your wardrobe with premium basics and standout
-                      styles crafted for modern living.
-                    </p>
-                    {/* <div className="flex flex-col sm:flex-row gap-4 pt-4">
+        <div className="mb-12 relative">
+          <Carousel
+            className="w-full"
+            setApi={setCarouselApi}
+            opts={{
+              align: "start",
+              loop: true,
+            }}
+          >
+            <CarouselContent>
+              <CarouselItem>
+                <div className="relative h-[400px] md:h-[500px] lg:h-[600px] rounded-2xl overflow-hidden shadow-2xl">
+                  <img
+                    src="https://images.unsplash.com/photo-1512436991641-6745cdb1723f?q=80&w=2400&auto=format&fit=crop"
+                    alt="New Season Arrivals"
+                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 hover:scale-105"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/30 to-transparent" />
+                  <div className="relative z-10 h-full flex flex-col justify-center p-8 md:p-12 lg:p-16 text-white max-w-3xl">
+                    <div className="space-y-6">
+                      <div className="inline-block">
+                        <Badge
+                          variant="secondary"
+                          className="text-xs uppercase tracking-wider bg-white/20 text-white border-white/30 backdrop-blur-sm"
+                        >
+                          New Collection
+                        </Badge>
+                      </div>
+                      <h2 className="text-4xl md:text-6xl lg:text-7xl font-bold leading-tight tracking-tight">
+                        New Season
+                        <span className="block text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-300">
+                          Arrivals
+                        </span>
+                      </h2>
+                      <p className="text-lg md:text-xl text-white/90 max-w-2xl leading-relaxed">
+                        Refresh your wardrobe with premium basics and standout
+                        styles crafted for modern living.
+                      </p>
+                      {/* <div className="flex flex-col sm:flex-row gap-4 pt-4">
                       <Button
                         size="lg"
                         className="bg-white text-black hover:bg-gray-100 font-semibold px-8 py-6 text-lg"
@@ -445,39 +446,39 @@ export default function StorePage() {
                         View Lookbook
                       </Button>
                     </div> */}
+                    </div>
                   </div>
                 </div>
-              </div>
-            </CarouselItem>
-            <CarouselItem>
-              <div className="relative h-[400px] md:h-[500px] lg:h-[600px] rounded-2xl overflow-hidden shadow-2xl">
-                <img
-                  src="https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?q=80&w=2400&auto=format&fit=crop"
-                  alt="Up to 40% Off Essentials"
-                  className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 hover:scale-105"
-                />
-                <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/30 to-transparent" />
-                <div className="relative z-10 h-full flex flex-col justify-center p-8 md:p-12 lg:p-16 text-white max-w-3xl">
-                  <div className="space-y-6">
-                    <div className="inline-block">
-                      <Badge
-                        variant="destructive"
-                        className="text-xs uppercase tracking-wider bg-red-600/90 text-white backdrop-blur-sm animate-pulse"
-                      >
-                        Limited Time
-                      </Badge>
-                    </div>
-                    <h2 className="text-4xl md:text-6xl lg:text-7xl font-bold leading-tight tracking-tight">
-                      Up to 40% Off
-                      <span className="block text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-orange-400">
-                        Essentials
-                      </span>
-                    </h2>
-                    <p className="text-lg md:text-xl text-white/90 max-w-2xl leading-relaxed">
-                      T‑shirts, pants, and accessories designed for everyday
-                      comfort and style.
-                    </p>
-                    {/* <div className="flex flex-col sm:flex-row gap-4 pt-4">
+              </CarouselItem>
+              <CarouselItem>
+                <div className="relative h-[400px] md:h-[500px] lg:h-[600px] rounded-2xl overflow-hidden shadow-2xl">
+                  <img
+                    src="https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?q=80&w=2400&auto=format&fit=crop"
+                    alt="Up to 40% Off Essentials"
+                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 hover:scale-105"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/30 to-transparent" />
+                  <div className="relative z-10 h-full flex flex-col justify-center p-8 md:p-12 lg:p-16 text-white max-w-3xl">
+                    <div className="space-y-6">
+                      <div className="inline-block">
+                        <Badge
+                          variant="destructive"
+                          className="text-xs uppercase tracking-wider bg-red-600/90 text-white backdrop-blur-sm animate-pulse"
+                        >
+                          Limited Time
+                        </Badge>
+                      </div>
+                      <h2 className="text-4xl md:text-6xl lg:text-7xl font-bold leading-tight tracking-tight">
+                        Up to 40% Off
+                        <span className="block text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-orange-400">
+                          Essentials
+                        </span>
+                      </h2>
+                      <p className="text-lg md:text-xl text-white/90 max-w-2xl leading-relaxed">
+                        T‑shirts, pants, and accessories designed for everyday
+                        comfort and style.
+                      </p>
+                      {/* <div className="flex flex-col sm:flex-row gap-4 pt-4">
                       <Button
                         size="lg"
                         className="bg-red-600 hover:bg-red-700 font-semibold px-8 py-6 text-lg"
@@ -492,39 +493,39 @@ export default function StorePage() {
                         View All Deals
                       </Button>
                     </div> */}
+                    </div>
                   </div>
                 </div>
-              </div>
-            </CarouselItem>
-            <CarouselItem>
-              <div className="relative h-[400px] md:h-[500px] lg:h-[600px] rounded-2xl overflow-hidden shadow-2xl">
-                <img
-                  src="https://images.unsplash.com/photo-1434389677669-e08b4cac3105?q=80&w=2400&auto=format&fit=crop"
-                  alt="Accessories to Elevate Your Look"
-                  className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 hover:scale-105"
-                />
-                <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/30 to-transparent" />
-                <div className="relative z-10 h-full flex flex-col justify-center p-8 md:p-12 lg:p-16 text-white max-w-3xl">
-                  <div className="space-y-6">
-                    <div className="inline-block">
-                      <Badge
-                        variant="secondary"
-                        className="text-xs uppercase tracking-wider bg-amber-600/90 text-white backdrop-blur-sm"
-                      >
-                        Complete Your Look
-                      </Badge>
-                    </div>
-                    <h2 className="text-4xl md:text-6xl lg:text-7xl font-bold leading-tight tracking-tight">
-                      Accessories to
-                      <span className="block text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-yellow-400">
-                        Elevate
-                      </span>
-                    </h2>
-                    <p className="text-lg md:text-xl text-white/90 max-w-2xl leading-relaxed">
-                      Complete your outfit with minimalist, durable accessories
-                      that make a statement.
-                    </p>
-                    {/* <div className="flex flex-col sm:flex-row gap-4 pt-4">
+              </CarouselItem>
+              <CarouselItem>
+                <div className="relative h-[400px] md:h-[500px] lg:h-[600px] rounded-2xl overflow-hidden shadow-2xl">
+                  <img
+                    src="https://images.unsplash.com/photo-1434389677669-e08b4cac3105?q=80&w=2400&auto=format&fit=crop"
+                    alt="Accessories to Elevate Your Look"
+                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 hover:scale-105"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/30 to-transparent" />
+                  <div className="relative z-10 h-full flex flex-col justify-center p-8 md:p-12 lg:p-16 text-white max-w-3xl">
+                    <div className="space-y-6">
+                      <div className="inline-block">
+                        <Badge
+                          variant="secondary"
+                          className="text-xs uppercase tracking-wider bg-amber-600/90 text-white backdrop-blur-sm"
+                        >
+                          Complete Your Look
+                        </Badge>
+                      </div>
+                      <h2 className="text-4xl md:text-6xl lg:text-7xl font-bold leading-tight tracking-tight">
+                        Accessories to
+                        <span className="block text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-yellow-400">
+                          Elevate
+                        </span>
+                      </h2>
+                      <p className="text-lg md:text-xl text-white/90 max-w-2xl leading-relaxed">
+                        Complete your outfit with minimalist, durable
+                        accessories that make a statement.
+                      </p>
+                      {/* <div className="flex flex-col sm:flex-row gap-4 pt-4">
                       <Button
                         size="lg"
                         className="bg-amber-600 hover:bg-amber-700 font-semibold px-8 py-6 text-lg"
@@ -539,188 +540,188 @@ export default function StorePage() {
                         Style Guide
                       </Button>
                     </div> */}
+                    </div>
                   </div>
                 </div>
+              </CarouselItem>
+            </CarouselContent>
+
+            {/* Navigation Arrows */}
+            <CarouselPrevious className="left-4 md:left-6 size-12 bg-white/10 border-white/20 text-white hover:bg-white/20 backdrop-blur-sm transition-all duration-300" />
+            <CarouselNext className="right-4 md:right-6 size-12 bg-white/10 border-white/20 text-white hover:bg-white/20 backdrop-blur-sm transition-all duration-300" />
+          </Carousel>
+
+          {/* Slide Indicators */}
+          <div className="flex justify-center space-x-2 mt-6">
+            {Array.from({ length: count }, (_, index) => (
+              <button
+                key={index}
+                className={`h-2 rounded-full transition-all duration-300 ${
+                  index + 1 === current
+                    ? "w-8 bg-primary"
+                    : "w-2 bg-muted-foreground/30 hover:bg-muted-foreground/50"
+                }`}
+                onClick={() => carouselApi?.scrollTo(index)}
+                aria-label={`Go to slide ${index + 1}`}
+              />
+            ))}
+          </div>
+        </div>
+
+        {/* Header */}
+        <div className="mb-12">
+          <div className="text-center max-w-4xl mx-auto">
+            <h1 className="text-5xl md:text-6xl font-bold mb-6">
+              Premium Collection
+            </h1>
+            <p className="text-xl md:text-2xl text-muted-foreground leading-relaxed mb-8">
+              Discover premium quality clothing and accessories crafted for the
+              modern lifestyle
+            </p>
+          </div>
+
+          {/* Seed Products Button (dev helper) */}
+          {products.length === 0 && (
+            <div className="flex justify-center mt-8">
+              <Button
+                onClick={handleSeedProducts}
+                disabled={seeding}
+                size="lg"
+                className="px-8 py-6 text-lg"
+              >
+                {seeding ? (
+                  <>
+                    <IconLoader2 className="mr-2 h-5 w-5 animate-spin" />
+                    Adding Products...
+                  </>
+                ) : (
+                  "Add Sample Products"
+                )}
+              </Button>
+            </div>
+          )}
+        </div>
+
+        {/* Category Tabs */}
+        <div className="mb-12">
+          <Tabs
+            defaultValue="all"
+            className="w-full"
+            onValueChange={setSelectedCategory}
+          >
+            <div className="flex justify-center mb-8">
+              <TabsList className="grid grid-cols-4 w-full max-w-2xl h-14 p-1 bg-muted/30 backdrop-blur-sm">
+                <TabsTrigger
+                  value="all"
+                  className="text-base font-medium h-full data-[state=active]:bg-white data-[state=active]:shadow-lg transition-all duration-300"
+                >
+                  All Products
+                  <Badge
+                    variant="secondary"
+                    className="ml-2 bg-primary/10 text-primary"
+                  >
+                    {categoryCounts.all}
+                  </Badge>
+                </TabsTrigger>
+                <TabsTrigger
+                  value="tshirts"
+                  className="text-base font-medium h-full data-[state=active]:bg-white data-[state=active]:shadow-lg transition-all duration-300"
+                >
+                  T-Shirts
+                  <Badge
+                    variant="secondary"
+                    className="ml-2 bg-primary/10 text-primary"
+                  >
+                    {categoryCounts.tshirts}
+                  </Badge>
+                </TabsTrigger>
+                <TabsTrigger
+                  value="pants"
+                  className="text-base font-medium h-full data-[state=active]:bg-white data-[state=active]:shadow-lg transition-all duration-300"
+                >
+                  Pants
+                  <Badge
+                    variant="secondary"
+                    className="ml-2 bg-primary/10 text-primary"
+                  >
+                    {categoryCounts.pants}
+                  </Badge>
+                </TabsTrigger>
+                <TabsTrigger
+                  value="accessories"
+                  className="text-base font-medium h-full data-[state=active]:bg-white data-[state=active]:shadow-lg transition-all duration-300"
+                >
+                  Accessories
+                  <Badge
+                    variant="secondary"
+                    className="ml-2 bg-primary/10 text-primary"
+                  >
+                    {categoryCounts.accessories}
+                  </Badge>
+                </TabsTrigger>
+              </TabsList>
+            </div>
+
+            <TabsContent value="all" className="mt-0">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+                {filteredProducts.map((product) => (
+                  <ProductCard key={product.id} product={product} />
+                ))}
               </div>
-            </CarouselItem>
-          </CarouselContent>
+            </TabsContent>
 
-          {/* Navigation Arrows */}
-          <CarouselPrevious className="left-4 md:left-6 size-12 bg-white/10 border-white/20 text-white hover:bg-white/20 backdrop-blur-sm transition-all duration-300" />
-          <CarouselNext className="right-4 md:right-6 size-12 bg-white/10 border-white/20 text-white hover:bg-white/20 backdrop-blur-sm transition-all duration-300" />
-        </Carousel>
+            <TabsContent value="tshirts" className="mt-0">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+                {filteredProducts.map((product) => (
+                  <ProductCard key={product.id} product={product} />
+                ))}
+              </div>
+            </TabsContent>
 
-        {/* Slide Indicators */}
-        <div className="flex justify-center space-x-2 mt-6">
-          {Array.from({ length: count }, (_, index) => (
-            <button
-              key={index}
-              className={`h-2 rounded-full transition-all duration-300 ${
-                index + 1 === current
-                  ? "w-8 bg-primary"
-                  : "w-2 bg-muted-foreground/30 hover:bg-muted-foreground/50"
-              }`}
-              onClick={() => carouselApi?.scrollTo(index)}
-              aria-label={`Go to slide ${index + 1}`}
-            />
-          ))}
-        </div>
-      </div>
+            <TabsContent value="pants" className="mt-0">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+                {filteredProducts.map((product) => (
+                  <ProductCard key={product.id} product={product} />
+                ))}
+              </div>
+            </TabsContent>
 
-      {/* Header */}
-      <div className="mb-12">
-        <div className="text-center max-w-4xl mx-auto">
-          <h1 className="text-5xl md:text-6xl font-bold mb-6">
-            Premium Collection
-          </h1>
-          <p className="text-xl md:text-2xl text-muted-foreground leading-relaxed mb-8">
-            Discover premium quality clothing and accessories crafted for the
-            modern lifestyle
-          </p>
+            <TabsContent value="accessories" className="mt-0">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+                {filteredProducts.map((product) => (
+                  <ProductCard key={product.id} product={product} />
+                ))}
+              </div>
+            </TabsContent>
+          </Tabs>
         </div>
 
-        {/* Seed Products Button (dev helper) */}
-        {products.length === 0 && (
-          <div className="flex justify-center mt-8">
-            <Button
-              onClick={handleSeedProducts}
-              disabled={seeding}
-              size="lg"
-              className="px-8 py-6 text-lg"
-            >
-              {seeding ? (
-                <>
-                  <IconLoader2 className="mr-2 h-5 w-5 animate-spin" />
-                  Adding Products...
-                </>
-              ) : (
-                "Add Sample Products"
-              )}
-            </Button>
+        {/* Empty State */}
+        {filteredProducts.length === 0 && (
+          <div className="text-center py-20">
+            <div className="max-w-md mx-auto">
+              <div className="w-24 h-24 mx-auto mb-8 bg-gradient-to-r from-muted/50 to-muted/20 rounded-full flex items-center justify-center">
+                <IconShoppingCart className="h-12 w-12 text-muted-foreground" />
+              </div>
+              <h3 className="text-2xl font-bold mb-3 text-foreground">
+                No Products Available
+              </h3>
+              <p className="text-lg text-muted-foreground leading-relaxed mb-6">
+                We're currently updating our{" "}
+                {selectedCategory === "all" ? "collection" : selectedCategory}{" "}
+                inventory. Please check back soon or explore other categories.
+              </p>
+              <Button
+                variant="outline"
+                size="lg"
+                onClick={() => setSelectedCategory("all")}
+                className="px-8 py-6 text-base"
+              >
+                Browse All Categories
+              </Button>
+            </div>
           </div>
         )}
-      </div>
-
-      {/* Category Tabs */}
-      <div className="mb-12">
-        <Tabs
-          defaultValue="all"
-          className="w-full"
-          onValueChange={setSelectedCategory}
-        >
-          <div className="flex justify-center mb-8">
-            <TabsList className="grid grid-cols-4 w-full max-w-2xl h-14 p-1 bg-muted/30 backdrop-blur-sm">
-              <TabsTrigger
-                value="all"
-                className="text-base font-medium h-full data-[state=active]:bg-white data-[state=active]:shadow-lg transition-all duration-300"
-              >
-                All Products
-                <Badge
-                  variant="secondary"
-                  className="ml-2 bg-primary/10 text-primary"
-                >
-                  {categoryCounts.all}
-                </Badge>
-              </TabsTrigger>
-              <TabsTrigger
-                value="tshirts"
-                className="text-base font-medium h-full data-[state=active]:bg-white data-[state=active]:shadow-lg transition-all duration-300"
-              >
-                T-Shirts
-                <Badge
-                  variant="secondary"
-                  className="ml-2 bg-primary/10 text-primary"
-                >
-                  {categoryCounts.tshirts}
-                </Badge>
-              </TabsTrigger>
-              <TabsTrigger
-                value="pants"
-                className="text-base font-medium h-full data-[state=active]:bg-white data-[state=active]:shadow-lg transition-all duration-300"
-              >
-                Pants
-                <Badge
-                  variant="secondary"
-                  className="ml-2 bg-primary/10 text-primary"
-                >
-                  {categoryCounts.pants}
-                </Badge>
-              </TabsTrigger>
-              <TabsTrigger
-                value="accessories"
-                className="text-base font-medium h-full data-[state=active]:bg-white data-[state=active]:shadow-lg transition-all duration-300"
-              >
-                Accessories
-                <Badge
-                  variant="secondary"
-                  className="ml-2 bg-primary/10 text-primary"
-                >
-                  {categoryCounts.accessories}
-                </Badge>
-              </TabsTrigger>
-            </TabsList>
-          </div>
-
-          <TabsContent value="all" className="mt-0">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-              {filteredProducts.map((product) => (
-                <ProductCard key={product.id} product={product} />
-              ))}
-            </div>
-          </TabsContent>
-
-          <TabsContent value="tshirts" className="mt-0">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-              {filteredProducts.map((product) => (
-                <ProductCard key={product.id} product={product} />
-              ))}
-            </div>
-          </TabsContent>
-
-          <TabsContent value="pants" className="mt-0">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-              {filteredProducts.map((product) => (
-                <ProductCard key={product.id} product={product} />
-              ))}
-            </div>
-          </TabsContent>
-
-          <TabsContent value="accessories" className="mt-0">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-              {filteredProducts.map((product) => (
-                <ProductCard key={product.id} product={product} />
-              ))}
-            </div>
-          </TabsContent>
-        </Tabs>
-      </div>
-
-      {/* Empty State */}
-      {filteredProducts.length === 0 && (
-        <div className="text-center py-20">
-          <div className="max-w-md mx-auto">
-            <div className="w-24 h-24 mx-auto mb-8 bg-gradient-to-r from-muted/50 to-muted/20 rounded-full flex items-center justify-center">
-              <IconShoppingCart className="h-12 w-12 text-muted-foreground" />
-            </div>
-            <h3 className="text-2xl font-bold mb-3 text-foreground">
-              No Products Available
-            </h3>
-            <p className="text-lg text-muted-foreground leading-relaxed mb-6">
-              We're currently updating our{" "}
-              {selectedCategory === "all" ? "collection" : selectedCategory}{" "}
-              inventory. Please check back soon or explore other categories.
-            </p>
-            <Button
-              variant="outline"
-              size="lg"
-              onClick={() => setSelectedCategory("all")}
-              className="px-8 py-6 text-base"
-            >
-              Browse All Categories
-            </Button>
-          </div>
-        </div>
-      )}
 
         {/* AI Shopping Assistant */}
         <AIShoppingAssistant storeType="clothing" />
